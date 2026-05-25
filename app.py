@@ -29,7 +29,7 @@ ADMIN_PASSWORD = "admin123"
 # ====================================
 st.set_page_config(
     page_title="OperaFlow",
-    page_icon="📦",
+    page_icon="🚀",
     layout="wide"
 )
 
@@ -49,13 +49,6 @@ st.markdown(
         background-color: #151924;
     }
 
-    .stMetric {
-        background-color: #1c2230;
-        padding: 15px;
-        border-radius: 12px;
-        border: 1px solid #2d3748;
-    }
-
     div[data-testid="metric-container"] {
         background-color: #1c2230;
         border: 1px solid #2d3748;
@@ -63,12 +56,7 @@ st.markdown(
         border-radius: 12px;
     }
 
-    .stDataFrame {
-        border-radius: 12px;
-        overflow: hidden;
-    }
-
-    .stButton>button {
+    .stButton > button {
         width: 100%;
         border-radius: 10px;
         height: 45px;
@@ -78,7 +66,7 @@ st.markdown(
         font-weight: bold;
     }
 
-    .stButton>button:hover {
+    .stButton > button:hover {
         background-color: #2563eb;
     }
 
@@ -95,10 +83,10 @@ if "logged_in" not in st.session_state:
 
 if "cart" not in st.session_state:
     st.session_state.cart = []
-    
+
 if "last_transaction" not in st.session_state:
     st.session_state.last_transaction = {}
-    
+
 # ====================================
 # LOGIN FUNCTION
 # ====================================
@@ -124,7 +112,7 @@ def login():
 # ====================================
 if not st.session_state.logged_in:
 
-    st.title("OperaFlow Login")
+    st.title("🚀 OperaFlow Login")
 
     st.caption(
         "Cloud Retail Management Dashboard"
@@ -180,7 +168,7 @@ product_df = pd.DataFrame(products)
 order_df = pd.DataFrame(orders)
 
 # ====================================
-# SAFE EMPTY HANDLING
+# SAFE EMPTY DATA
 # ====================================
 if not product_df.empty:
     total_stock = product_df["stock"].sum()
@@ -209,7 +197,6 @@ st.sidebar.markdown(
     ### Retail Operating System
     """
 )
-st.sidebar.subheader("Retail OS")
 
 st.sidebar.divider()
 
@@ -246,13 +233,13 @@ menu = st.sidebar.radio(
 if menu == "Dashboard":
 
     st.markdown(
-    """
-    # 🚀 OperaFlow Dashboard
+        """
+        # 🚀 OperaFlow Dashboard
 
-    Welcome back, Admin.
-    Here's your retail business overview today.
-    """
-)
+        Welcome back, Admin.
+        Here's your retail business overview today.
+        """
+    )
 
     # ====================================
     # KPI CARDS
@@ -325,88 +312,6 @@ if menu == "Dashboard":
     st.divider()
 
     # ====================================
-    # CHARTS
-    # ====================================
-    col1, col2 = st.columns(2)
-
-    with col1:
-
-        if not order_df.empty:
-
-            product_chart = px.bar(
-                order_df,
-                x="product_name",
-                y="total_amount",
-                title="Revenue by Product"
-            )
-
-            st.plotly_chart(
-                product_chart,
-                use_container_width=True
-            )
-
-        else:
-
-            st.info(
-                "No product sales data."
-            )
-
-    with col2:
-
-        if not order_df.empty:
-
-            status_chart = px.pie(
-                order_df,
-                names="status",
-                title="Order Status"
-            )
-
-            st.plotly_chart(
-                status_chart,
-                use_container_width=True
-            )
-
-        else:
-
-            st.info(
-                "No order status data."
-            )
-
-    st.divider()
-
-    # ====================================
-    # TOP PRODUCTS
-    # ====================================
-    st.subheader("Top Selling Products")
-
-    if not order_df.empty:
-
-        top_products = order_df.groupby(
-            "product_name",
-            as_index=False
-        )["quantity"].sum()
-
-        top_chart = px.bar(
-            top_products,
-            x="product_name",
-            y="quantity",
-            title="Most Ordered Products"
-        )
-
-        st.plotly_chart(
-            top_chart,
-            use_container_width=True
-        )
-
-    else:
-
-        st.info(
-            "No top selling product data."
-        )
-
-    st.divider()
-
-    # ====================================
     # LOW STOCK ALERT
     # ====================================
     st.subheader("Low Stock Alert")
@@ -434,55 +339,12 @@ if menu == "Dashboard":
                 "Inventory stock levels are healthy."
             )
 
-    else:
-
-        st.info(
-            "No inventory data available."
-        )
-
-    st.divider()
-
-    # ====================================
-    # RECENT ORDERS
-    # ====================================
-    st.subheader("Recent Orders")
-
-    if not order_df.empty:
-
-        recent_orders = order_df.sort_values(
-            by="created_at",
-            ascending=False
-        )
-
-        display_orders = recent_orders.copy()
-
-        display_orders["total_amount"] = (
-            display_orders["total_amount"]
-            .apply(
-                lambda x:
-                f"Rp {x:,.0f}"
-            )
-        )
-
-        st.dataframe(
-            display_orders.head(5),
-            use_container_width=True
-        )
-
-    else:
-
-        st.info(
-            "No recent orders available."
-        )
-
 # ====================================
 # CUSTOMER PAGE
 # ====================================
 elif menu == "Customers":
 
     st.title("Customer Database")
-
-    st.subheader("Add New Customer")
 
     with st.form("customer_form"):
 
@@ -523,22 +385,9 @@ elif menu == "Customers":
 
     st.divider()
 
-    st.subheader("Customer List")
-
     st.dataframe(
         customer_df,
         use_container_width=True
-    )
-
-    csv_customer = customer_df.to_csv(
-        index=False
-    ).encode("utf-8")
-
-    st.download_button(
-        label="Download Customer CSV",
-        data=csv_customer,
-        file_name="customers.csv",
-        mime="text/csv"
     )
 
 # ====================================
@@ -547,8 +396,6 @@ elif menu == "Customers":
 elif menu == "Products":
 
     st.title("Product Inventory")
-
-    st.subheader("Add New Product")
 
     with st.form("product_form"):
 
@@ -601,8 +448,6 @@ elif menu == "Products":
 
     st.divider()
 
-    st.subheader("Product List")
-
     display_products = product_df.copy()
 
     if not display_products.empty:
@@ -620,25 +465,12 @@ elif menu == "Products":
         use_container_width=True
     )
 
-    csv_product = product_df.to_csv(
-        index=False
-    ).encode("utf-8")
-
-    st.download_button(
-        label="Download Product CSV",
-        data=csv_product,
-        file_name="products.csv",
-        mime="text/csv"
-    )
-
 # ====================================
 # ORDER PAGE
 # ====================================
 elif menu == "Orders":
 
     st.title("Order Management")
-
-    st.subheader("Order List")
 
     if not order_df.empty:
 
@@ -662,17 +494,6 @@ elif menu == "Orders":
         st.info(
             "No order data available."
         )
-
-    csv_order = order_df.to_csv(
-        index=False
-    ).encode("utf-8")
-
-    st.download_button(
-        label="Download Orders CSV",
-        data=csv_order,
-        file_name="orders.csv",
-        mime="text/csv"
-    )
 
 # ====================================
 # POS PAGE
@@ -763,7 +584,7 @@ elif menu == "POS":
         st.divider()
 
         # ====================================
-        # CART SECTION
+        # CART
         # ====================================
         st.subheader("Shopping Cart")
 
