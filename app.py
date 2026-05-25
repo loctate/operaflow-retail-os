@@ -1,8 +1,6 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import plotly.graph_objects as go
-import io
 
 from services.customer_service import (
     get_customers,
@@ -40,6 +38,9 @@ st.set_page_config(
 # ====================================
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
+
+if "cart" not in st.session_state:
+    st.session_state.cart = []
 
 # ====================================
 # LOGIN FUNCTION
@@ -122,7 +123,7 @@ product_df = pd.DataFrame(products)
 order_df = pd.DataFrame(orders)
 
 # ====================================
-# SAFE EMPTY DATA HANDLING
+# SAFE EMPTY HANDLING
 # ====================================
 if not product_df.empty:
     total_stock = product_df["stock"].sum()
@@ -135,7 +136,7 @@ else:
     total_revenue = 0
 
 # ====================================
-# KPI DATA
+# KPI
 # ====================================
 total_customers = len(customer_df)
 total_products = len(product_df)
@@ -150,11 +151,11 @@ st.sidebar.subheader("Retail OS")
 st.sidebar.divider()
 
 st.sidebar.info(
-    "OperaFlow Retail Management System"
+    "Cloud Retail Management System"
 )
 
 # ====================================
-# LOGOUT BUTTON
+# LOGOUT
 # ====================================
 if st.sidebar.button("Logout"):
 
@@ -162,6 +163,9 @@ if st.sidebar.button("Logout"):
 
     st.rerun()
 
+# ====================================
+# MENU
+# ====================================
 menu = st.sidebar.radio(
     "Navigation",
     [
@@ -195,7 +199,10 @@ if menu == "Dashboard":
         st.metric("Orders", total_orders)
 
     with col4:
-        st.metric("Inventory Stock", total_stock)
+        st.metric(
+            "Inventory Stock",
+            total_stock
+        )
 
     with col5:
         st.metric(
@@ -216,16 +223,17 @@ if menu == "Dashboard":
             order_df["created_at"]
         )
 
-        order_df["order_date"] = order_df[
-            "created_at"
-        ].dt.date
+        order_df["order_date"] = (
+            order_df["created_at"]
+            .dt.date
+        )
 
         revenue_trend = order_df.groupby(
             "order_date",
             as_index=False
         )["total_amount"].sum()
 
-        revenue_line = px.line(
+        revenue_chart = px.line(
             revenue_trend,
             x="order_date",
             y="total_amount",
@@ -234,18 +242,20 @@ if menu == "Dashboard":
         )
 
         st.plotly_chart(
-            revenue_line,
+            revenue_chart,
             use_container_width=True
         )
 
     else:
 
-        st.info("No revenue data available.")
+        st.info(
+            "No revenue data available."
+        )
 
     st.divider()
 
     # ====================================
-    # CHART SECTION
+    # CHARTS
     # ====================================
     col1, col2 = st.columns(2)
 
@@ -253,7 +263,7 @@ if menu == "Dashboard":
 
         if not order_df.empty:
 
-            revenue_chart = px.bar(
+            product_chart = px.bar(
                 order_df,
                 x="product_name",
                 y="total_amount",
@@ -261,13 +271,15 @@ if menu == "Dashboard":
             )
 
             st.plotly_chart(
-                revenue_chart,
+                product_chart,
                 use_container_width=True
             )
 
         else:
 
-            st.info("No order data available.")
+            st.info(
+                "No product sales data."
+            )
 
     with col2:
 
@@ -276,7 +288,7 @@ if menu == "Dashboard":
             status_chart = px.pie(
                 order_df,
                 names="status",
-                title="Order Status Distribution"
+                title="Order Status"
             )
 
             st.plotly_chart(
@@ -286,12 +298,14 @@ if menu == "Dashboard":
 
         else:
 
-            st.info("No status data available.")
+            st.info(
+                "No order status data."
+            )
 
     st.divider()
 
     # ====================================
-    # TOP SELLING PRODUCTS
+    # TOP PRODUCTS
     # ====================================
     st.subheader("Top Selling Products")
 
@@ -302,7 +316,7 @@ if menu == "Dashboard":
             as_index=False
         )["quantity"].sum()
 
-        top_products_chart = px.bar(
+        top_chart = px.bar(
             top_products,
             x="product_name",
             y="quantity",
@@ -310,13 +324,15 @@ if menu == "Dashboard":
         )
 
         st.plotly_chart(
-            top_products_chart,
+            top_chart,
             use_container_width=True
         )
 
     else:
 
-        st.info("No product sales data available.")
+        st.info(
+            "No top selling product data."
+        )
 
     st.divider()
 
@@ -334,7 +350,7 @@ if menu == "Dashboard":
         if len(low_stock_df) > 0:
 
             st.warning(
-                f"There are {len(low_stock_df)} low stock products!"
+                f"{len(low_stock_df)} products have low stock!"
             )
 
             st.dataframe(
@@ -351,7 +367,7 @@ if menu == "Dashboard":
     else:
 
         st.info(
-            "No product inventory data available."
+            "No inventory data available."
         )
 
     st.divider()
@@ -368,21 +384,26 @@ if menu == "Dashboard":
             ascending=False
         )
 
-        display_recent_orders = recent_orders.copy()
+        display_orders = recent_orders.copy()
 
-        display_recent_orders["total_amount"] = (
-            display_recent_orders["total_amount"]
-            .apply(lambda x: f"Rp {x:,.0f}")
+        display_orders["total_amount"] = (
+            display_orders["total_amount"]
+            .apply(
+                lambda x:
+                f"Rp {x:,.0f}"
+            )
         )
 
         st.dataframe(
-            display_recent_orders.head(5),
+            display_orders.head(5),
             use_container_width=True
         )
 
     else:
 
-        st.info("No recent orders available.")
+        st.info(
+            "No recent orders available."
+        )
 
 # ====================================
 # CUSTOMER PAGE
@@ -439,9 +460,6 @@ elif menu == "Customers":
         use_container_width=True
     )
 
-    # ====================================
-    # EXPORT CUSTOMER CSV
-    # ====================================
     csv_customer = customer_df.to_csv(
         index=False
     ).encode("utf-8")
@@ -515,23 +533,23 @@ elif menu == "Products":
 
     st.subheader("Product List")
 
-    display_product_df = product_df.copy()
+    display_products = product_df.copy()
 
-    if not display_product_df.empty:
+    if not display_products.empty:
 
-        display_product_df["price"] = (
-            display_product_df["price"]
-            .apply(lambda x: f"Rp {x:,.0f}")
+        display_products["price"] = (
+            display_products["price"]
+            .apply(
+                lambda x:
+                f"Rp {x:,.0f}"
+            )
         )
 
     st.dataframe(
-        display_product_df,
+        display_products,
         use_container_width=True
     )
 
-    # ====================================
-    # EXPORT PRODUCT CSV
-    # ====================================
     csv_product = product_df.to_csv(
         index=False
     ).encode("utf-8")
@@ -550,112 +568,31 @@ elif menu == "Orders":
 
     st.title("Order Management")
 
-    st.subheader("Create New Order")
+    st.subheader("Order List")
 
-    if customer_df.empty or product_df.empty:
+    if not order_df.empty:
 
-        st.warning(
-            "Please add customers and products first."
+        display_orders = order_df.copy()
+
+        display_orders["total_amount"] = (
+            display_orders["total_amount"]
+            .apply(
+                lambda x:
+                f"Rp {x:,.0f}"
+            )
+        )
+
+        st.dataframe(
+            display_orders,
+            use_container_width=True
         )
 
     else:
 
-        customer_names = customer_df[
-            "name"
-        ].tolist()
-
-        product_names = product_df[
-            "name"
-        ].tolist()
-
-        with st.form("order_form"):
-
-            customer_name = st.selectbox(
-                "Select Customer",
-                customer_names
-            )
-
-            product_name = st.selectbox(
-                "Select Product",
-                product_names
-            )
-
-            quantity = st.number_input(
-                "Quantity",
-                min_value=1,
-                step=1
-            )
-
-            status = st.selectbox(
-                "Order Status",
-                [
-                    "Pending",
-                    "Processing",
-                    "Completed"
-                ]
-            )
-
-            selected_product = product_df[
-                product_df["name"] == product_name
-            ]
-
-            product_price = selected_product.iloc[
-                0
-            ]["price"]
-
-            total_amount = int(
-                quantity * product_price
-            )
-
-            st.info(
-                f"Total Amount: Rp {total_amount:,.0f}"
-            )
-
-            submitted = st.form_submit_button(
-                "Create Order"
-            )
-
-            if submitted:
-
-                add_order(
-                    customer_name,
-                    product_name,
-                    int(quantity),
-                    int(total_amount),
-                    status
-                )
-                update_stock(
-                    product_name,
-                    int(quantity)
-                )
-
-                st.success(
-                    "Order created successfully!"
-                )
-
-                st.rerun()
-
-    st.divider()
-
-    st.subheader("Order List")
-
-    display_order_df = order_df.copy()
-
-    if not display_order_df.empty:
-
-        display_order_df["total_amount"] = (
-            display_order_df["total_amount"]
-            .apply(lambda x: f"Rp {x:,.0f}")
+        st.info(
+            "No order data available."
         )
 
-    st.dataframe(
-        display_order_df,
-        use_container_width=True
-    )
-
-    # ====================================
-    # EXPORT ORDER CSV
-    # ====================================
     csv_order = order_df.to_csv(
         index=False
     ).encode("utf-8")
@@ -666,7 +603,8 @@ elif menu == "Orders":
         file_name="orders.csv",
         mime="text/csv"
     )
-    # ====================================
+
+# ====================================
 # POS PAGE
 # ====================================
 elif menu == "POS":
@@ -687,10 +625,14 @@ elif menu == "POS":
             "name"
         ].tolist()
 
-        selected_product = st.selectbox(
-            "Select Product",
-            product_names
-        )
+        col1, col2 = st.columns(2)
+
+        with col1:
+
+            selected_product = st.selectbox(
+                "Select Product",
+                product_names
+            )
 
         product_data = product_df[
             product_df["name"]
@@ -705,14 +647,16 @@ elif menu == "POS":
             product_data.iloc[0]["stock"]
         )
 
-        st.info(
-            f"Current Stock: {current_stock}"
-        )
+        with col2:
 
-        quantity = st.number_input(
-            "Quantity",
-            min_value=1,
-            step=1
+            quantity = st.number_input(
+                "Quantity",
+                min_value=1,
+                step=1
+            )
+
+        st.info(
+            f"Stock Available: {current_stock}"
         )
 
         total_price = (
@@ -720,43 +664,114 @@ elif menu == "POS":
         )
 
         st.metric(
-            "Total Payment",
+            "Item Total",
             f"Rp {total_price:,.0f}"
         )
 
-        customer_name = st.text_input(
-            "Customer Name"
-        )
+        # ====================================
+        # ADD TO CART
+        # ====================================
+        if st.button("Add to Cart"):
 
-        if st.button("Checkout"):
+            cart_item = {
+                "product_name": selected_product,
+                "quantity": quantity,
+                "price": product_price,
+                "total": total_price
+            }
 
-            if quantity > current_stock:
+            st.session_state.cart.append(
+                cart_item
+            )
 
-                st.error(
-                    "Not enough stock!"
+            st.success(
+                "Item added to cart!"
+            )
+
+            st.rerun()
+
+        st.divider()
+
+        # ====================================
+        # CART SECTION
+        # ====================================
+        st.subheader("Shopping Cart")
+
+        if len(st.session_state.cart) == 0:
+
+            st.info("Cart is empty.")
+
+        else:
+
+            cart_df = pd.DataFrame(
+                st.session_state.cart
+            )
+
+            display_cart_df = cart_df.copy()
+
+            display_cart_df["price"] = (
+                display_cart_df["price"]
+                .apply(
+                    lambda x:
+                    f"Rp {x:,.0f}"
                 )
+            )
 
-            else:
-
-                add_order(
-                    customer_name,
-                    selected_product,
-                    int(quantity),
-                    int(total_price),
-                    "Completed"
+            display_cart_df["total"] = (
+                display_cart_df["total"]
+                .apply(
+                    lambda x:
+                    f"Rp {x:,.0f}"
                 )
+            )
 
-                update_stock(
-                    selected_product,
-                    int(quantity)
-                )
+            st.dataframe(
+                display_cart_df,
+                use_container_width=True
+            )
+
+            grand_total = cart_df[
+                "total"
+            ].sum()
+
+            st.metric(
+                "Grand Total",
+                f"Rp {grand_total:,.0f}"
+            )
+
+            customer_name = st.text_input(
+                "Customer Name"
+            )
+
+            # ====================================
+            # CHECKOUT
+            # ====================================
+            if st.button("Checkout All"):
+
+                for item in st.session_state.cart:
+
+                    add_order(
+                        customer_name,
+                        item["product_name"],
+                        int(item["quantity"]),
+                        int(item["total"]),
+                        "Completed"
+                    )
+
+                    update_stock(
+                        item["product_name"],
+                        int(item["quantity"])
+                    )
 
                 st.session_state.last_transaction = {
                     "customer_name": customer_name,
-                    "product_name": selected_product,
-                    "quantity": quantity,
-                    "total_price": total_price
+                    "total_price": grand_total,
+                    "total_items": len(
+                        st.session_state.cart
+                    )
                 }
+
+                st.session_state.cart = []
 
                 st.success(
                     "Transaction completed!"
@@ -765,45 +780,62 @@ elif menu == "POS":
                 st.balloons()
 
                 st.rerun()
-                # ====================================
-# RECEIPT SECTION
-# ====================================
-if "last_transaction" in st.session_state:
 
-    trx = st.session_state.last_transaction
+            # ====================================
+            # CLEAR CART
+            # ====================================
+            if st.button("Clear Cart"):
 
-    st.divider()
+                st.session_state.cart = []
 
-    st.subheader("Transaction Receipt")
+                st.warning(
+                    "Cart cleared."
+                )
 
-    receipt_html = f"""
-    <div style="
-        padding:20px;
-        border-radius:10px;
-        border:1px solid #444;
-        background-color:#111;
-    ">
+                st.rerun()
 
-    <h3>OperaFlow Receipt</h3>
+    # ====================================
+    # RECEIPT SECTION
+    # ====================================
+    if "last_transaction" in st.session_state:
 
-    <hr>
+        trx = st.session_state.last_transaction
 
-    <p><b>Customer:</b> {trx['customer_name']}</p>
+        st.divider()
 
-    <p><b>Product:</b> {trx['product_name']}</p>
+        st.subheader(
+            "Transaction Receipt"
+        )
 
-    <p><b>Quantity:</b> {trx['quantity']}</p>
+        receipt_html = f"""
+        <div style="
+            padding:20px;
+            border-radius:10px;
+            border:1px solid #444;
+            background-color:#111;
+        ">
 
-    <p><b>Total:</b> Rp {trx['total_price']:,.0f}</p>
+        <h3>OperaFlow Receipt</h3>
 
-    <hr>
+        <hr>
 
-    <p>Thank you for shopping!</p>
+        <p><b>Customer:</b>
+        {trx['customer_name']}</p>
 
-    </div>
-    """
+        <p><b>Total Items:</b>
+        {trx['total_items']}</p>
 
-    st.markdown(
-        receipt_html,
-        unsafe_allow_html=True
-    )
+        <p><b>Total Payment:</b>
+        Rp {trx['total_price']:,.0f}</p>
+
+        <hr>
+
+        <p>Thank you for shopping!</p>
+
+        </div>
+        """
+
+        st.markdown(
+            receipt_html,
+            unsafe_allow_html=True
+        )
