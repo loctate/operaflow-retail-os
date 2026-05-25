@@ -300,7 +300,8 @@ menu = st.sidebar.radio(
         "POS",
         "Reports",
         "Inventory Logs",
-        "Suppliers"
+        "Suppliers",
+        "AI Insights"
     ]
 )
 
@@ -947,4 +948,145 @@ elif menu == "Suppliers":
     st.dataframe(
         supplier_df,
         use_container_width=True
+    )
+# ====================================
+# AI INSIGHTS PAGE
+# ====================================
+elif menu == "AI Insights":
+
+    st.title("AI Business Insights")
+
+    # ====================================
+    # LOW STOCK PRODUCTS
+    # ====================================
+    st.subheader("Smart Restock Recommendation")
+
+    if not product_df.empty:
+
+        low_stock_products = product_df[
+            product_df["stock"] < 20
+        ]
+
+        if len(low_stock_products) > 0:
+
+            st.warning(
+                "These products are running low and should be restocked soon."
+            )
+
+            st.dataframe(
+                low_stock_products,
+                use_container_width=True
+            )
+
+        else:
+
+            st.success(
+                "All products currently have healthy stock levels."
+            )
+
+    st.divider()
+
+    # ====================================
+    # BEST SELLING PRODUCTS
+    # ====================================
+    st.subheader("Best Selling Products")
+
+    if not order_df.empty:
+
+        best_seller = order_df.groupby(
+            "product_name",
+            as_index=False
+        )["quantity"].sum()
+
+        best_seller = best_seller.sort_values(
+            by="quantity",
+            ascending=False
+        )
+
+        st.dataframe(
+            best_seller,
+            use_container_width=True
+        )
+
+        best_chart = px.bar(
+            best_seller,
+            x="product_name",
+            y="quantity",
+            title="Top Selling Products"
+        )
+
+        st.plotly_chart(
+            best_chart,
+            use_container_width=True
+        )
+
+    else:
+
+        st.info(
+            "No sales data available."
+        )
+
+    st.divider()
+
+    # ====================================
+    # SLOW MOVING PRODUCTS
+    # ====================================
+    st.subheader("Slow Moving Products")
+
+    if not order_df.empty and not product_df.empty:
+
+        sold_products = order_df[
+            "product_name"
+        ].unique()
+
+        slow_products = product_df[
+            ~product_df["name"].isin(sold_products)
+        ]
+
+        if len(slow_products) > 0:
+
+            st.warning(
+                "These products have low or no sales activity."
+            )
+
+            st.dataframe(
+                slow_products,
+                use_container_width=True
+            )
+
+        else:
+
+            st.success(
+                "All products have sales activity."
+            )
+
+    st.divider()
+
+    # ====================================
+    # BUSINESS SUMMARY
+    # ====================================
+    st.subheader("AI Business Summary")
+
+    total_products_count = len(product_df)
+    total_customers_count = len(customer_df)
+    total_orders_count = len(order_df)
+
+    st.info(
+        f"""
+        OperaFlow AI Summary:
+
+        • Total Products: {total_products_count}
+
+        • Total Customers: {total_customers_count}
+
+        • Total Orders: {total_orders_count}
+
+        • Current Revenue: Rp {total_revenue:,.0f}
+
+        • System recommends monitoring low-stock products regularly.
+
+        • Best-selling products should be prioritized for restocking.
+
+        • Slow-moving products may require promotion or discount strategies.
+        """
     )
