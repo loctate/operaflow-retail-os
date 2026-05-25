@@ -41,7 +41,10 @@ if "logged_in" not in st.session_state:
 
 if "cart" not in st.session_state:
     st.session_state.cart = []
-
+    
+if "last_transaction" not in st.session_state:
+    st.session_state.last_transaction = {}
+    
 # ====================================
 # LOGIN FUNCTION
 # ====================================
@@ -823,10 +826,10 @@ elif menu == "POS":
         {trx['customer_name']}</p>
 
         <p><b>Total Items:</b>
-        {trx['total_items']}</p>
+        {trx.get('total_items', 1)}</p>
 
         <p><b>Total Payment:</b>
-        Rp {trx['total_price']:,.0f}</p>
+        Rp {trx.get('total_price', 0):,.0f}</p>
 
         <hr>
 
