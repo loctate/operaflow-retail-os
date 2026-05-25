@@ -6,7 +6,12 @@ from fpdf import FPDF
 from datetime import datetime
 
 from services.customer_service import get_customers, add_customer
-from services.product_service import get_products, add_product, update_stock
+from services.product_service import (
+    get_products,
+    add_product,
+    update_stock,
+    restock_product
+)
 from services.order_service import get_orders, add_order
 
 ADMIN_USERNAME = "admin"
