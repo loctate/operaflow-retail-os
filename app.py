@@ -706,36 +706,83 @@ elif menu == "POS":
 
         else:
 
-            cart_df = pd.DataFrame(
+            # ====================================
+            # CART HEADER
+            # ====================================
+            header1, header2, header3, header4, header5 = st.columns(
+                [3, 1, 2, 2, 1]
+            )
+
+            with header1:
+                st.markdown("**Product**")
+
+            with header2:
+                st.markdown("**Qty**")
+
+            with header3:
+                st.markdown("**Price**")
+
+            with header4:
+                st.markdown("**Total**")
+
+            with header5:
+                st.markdown("**Delete**")
+
+            st.divider()
+
+            # ====================================
+            # CART ITEMS
+            # ====================================
+            for index, item in enumerate(
                 st.session_state.cart
-            )
+            ):
 
-            display_cart_df = cart_df.copy()
-
-            display_cart_df["price"] = (
-                display_cart_df["price"]
-                .apply(
-                    lambda x:
-                    f"Rp {x:,.0f}"
+                col1, col2, col3, col4, col5 = st.columns(
+                    [3, 1, 2, 2, 1]
                 )
-            )
 
-            display_cart_df["total"] = (
-                display_cart_df["total"]
-                .apply(
-                    lambda x:
-                    f"Rp {x:,.0f}"
-                )
-            )
+                with col1:
+                    st.write(
+                        item["product_name"]
+                    )
 
-            st.dataframe(
-                display_cart_df,
-                use_container_width=True
-            )
+                with col2:
+                    st.write(
+                        item["quantity"]
+                    )
 
-            grand_total = cart_df[
-                "total"
-            ].sum()
+                with col3:
+                    st.write(
+                        f"Rp {item['price']:,.0f}"
+                    )
+
+                with col4:
+                    st.write(
+                        f"Rp {item['total']:,.0f}"
+                    )
+
+                with col5:
+
+                    if st.button(
+                        "❌",
+                        key=f"remove_{index}"
+                    ):
+
+                        st.session_state.cart.pop(
+                            index
+                        )
+
+                        st.rerun()
+
+            st.divider()
+
+            # ====================================
+            # GRAND TOTAL
+            # ====================================
+            grand_total = sum(
+                item["total"]
+                for item in st.session_state.cart
+            )
 
             st.metric(
                 "Grand Total",
@@ -751,38 +798,46 @@ elif menu == "POS":
             # ====================================
             if st.button("Checkout All"):
 
-                for item in st.session_state.cart:
+                if customer_name == "":
 
-                    add_order(
-                        customer_name,
-                        item["product_name"],
-                        int(item["quantity"]),
-                        int(item["total"]),
-                        "Completed"
+                    st.warning(
+                        "Please input customer name."
                     )
 
-                    update_stock(
-                        item["product_name"],
-                        int(item["quantity"])
+                else:
+
+                    for item in st.session_state.cart:
+
+                        add_order(
+                            customer_name,
+                            item["product_name"],
+                            int(item["quantity"]),
+                            int(item["total"]),
+                            "Completed"
+                        )
+
+                        update_stock(
+                            item["product_name"],
+                            int(item["quantity"])
+                        )
+
+                    st.session_state.last_transaction = {
+                        "customer_name": customer_name,
+                        "total_price": grand_total,
+                        "total_items": len(
+                            st.session_state.cart
+                        )
+                    }
+
+                    st.session_state.cart = []
+
+                    st.success(
+                        "Transaction completed!"
                     )
 
-                st.session_state.last_transaction = {
-                    "customer_name": customer_name,
-                    "total_price": grand_total,
-                    "total_items": len(
-                        st.session_state.cart
-                    )
-                }
+                    st.balloons()
 
-                st.session_state.cart = []
-
-                st.success(
-                    "Transaction completed!"
-                )
-
-                st.balloons()
-
-                st.rerun()
+                    st.rerun()
 
             # ====================================
             # CLEAR CART
@@ -823,7 +878,7 @@ elif menu == "POS":
         <hr>
 
         <p><b>Customer:</b>
-        {trx['customer_name']}</p>
+        {trx.get('customer_name', '-')}</p>
 
         <p><b>Total Items:</b>
         {trx.get('total_items', 1)}</p>
