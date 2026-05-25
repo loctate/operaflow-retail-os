@@ -168,7 +168,8 @@ menu = st.sidebar.radio(
         "Dashboard",
         "Customers",
         "Products",
-        "Orders"
+        "Orders",
+        "POS"
     ]
 )
 
@@ -665,3 +666,95 @@ elif menu == "Orders":
         file_name="orders.csv",
         mime="text/csv"
     )
+    # ====================================
+# POS PAGE
+# ====================================
+elif menu == "POS":
+
+    st.title("Point of Sales")
+
+    st.subheader("Cashier Mode")
+
+    if product_df.empty:
+
+        st.warning(
+            "No products available."
+        )
+
+    else:
+
+        product_names = product_df[
+            "name"
+        ].tolist()
+
+        selected_product = st.selectbox(
+            "Select Product",
+            product_names
+        )
+
+        product_data = product_df[
+            product_df["name"]
+            == selected_product
+        ]
+
+        product_price = int(
+            product_data.iloc[0]["price"]
+        )
+
+        current_stock = int(
+            product_data.iloc[0]["stock"]
+        )
+
+        st.info(
+            f"Current Stock: {current_stock}"
+        )
+
+        quantity = st.number_input(
+            "Quantity",
+            min_value=1,
+            step=1
+        )
+
+        total_price = (
+            product_price * quantity
+        )
+
+        st.metric(
+            "Total Payment",
+            f"Rp {total_price:,.0f}"
+        )
+
+        customer_name = st.text_input(
+            "Customer Name"
+        )
+
+        if st.button("Checkout"):
+
+            if quantity > current_stock:
+
+                st.error(
+                    "Not enough stock!"
+                )
+
+            else:
+
+                add_order(
+                    customer_name,
+                    selected_product,
+                    int(quantity),
+                    int(total_price),
+                    "Completed"
+                )
+
+                update_stock(
+                    selected_product,
+                    int(quantity)
+                )
+
+                st.success(
+                    "Transaction completed!"
+                )
+
+                st.balloons()
+
+                st.rerun()
