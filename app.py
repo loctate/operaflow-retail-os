@@ -11,7 +11,8 @@ from services.customer_service import (
 
 from services.product_service import (
     get_products,
-    add_product
+    add_product,
+    update_stock
 )
 
 from services.order_service import (
@@ -621,6 +622,10 @@ elif menu == "Orders":
                     int(quantity),
                     int(total_amount),
                     status
+                )
+                update_stock(
+                    product_name,
+                    int(quantity)
                 )
 
                 st.success(
