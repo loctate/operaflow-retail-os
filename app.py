@@ -20,6 +20,12 @@ from services.order_service import (
 )
 
 # ====================================
+# LOGIN CONFIG
+# ====================================
+ADMIN_USERNAME = "admin"
+ADMIN_PASSWORD = "admin123"
+
+# ====================================
 # PAGE CONFIG
 # ====================================
 st.set_page_config(
@@ -27,6 +33,51 @@ st.set_page_config(
     page_icon="📦",
     layout="wide"
 )
+
+# ====================================
+# SESSION STATE
+# ====================================
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
+
+# ====================================
+# LOGIN PAGE
+# ====================================
+if not st.session_state.logged_in:
+
+    st.title("OperaFlow Login")
+
+    st.subheader("Retail Management System")
+
+    username = st.text_input("Username")
+
+    password = st.text_input(
+        "Password",
+        type="password"
+    )
+
+    login_button = st.button("Login")
+
+    if login_button:
+
+        if (
+            username == ADMIN_USERNAME
+            and password == ADMIN_PASSWORD
+        ):
+
+            st.session_state.logged_in = True
+
+            st.success("Login successful!")
+
+            st.rerun()
+
+        else:
+
+            st.error(
+                "Invalid username or password"
+            )
+
+    st.stop()
 
 # ====================================
 # LOAD DATA
@@ -70,6 +121,15 @@ st.sidebar.divider()
 st.sidebar.info(
     "OperaFlow Retail Management System"
 )
+
+# ====================================
+# LOGOUT BUTTON
+# ====================================
+if st.sidebar.button("Logout"):
+
+    st.session_state.logged_in = False
+
+    st.rerun()
 
 menu = st.sidebar.radio(
     "Navigation",
@@ -147,6 +207,7 @@ if menu == "Dashboard":
         )
 
     else:
+
         st.info("No revenue data available.")
 
     st.divider()
@@ -173,6 +234,7 @@ if menu == "Dashboard":
             )
 
         else:
+
             st.info("No order data available.")
 
     with col2:
@@ -191,6 +253,7 @@ if menu == "Dashboard":
             )
 
         else:
+
             st.info("No status data available.")
 
     st.divider()
@@ -220,6 +283,7 @@ if menu == "Dashboard":
         )
 
     else:
+
         st.info("No product sales data available.")
 
     st.divider()
@@ -247,12 +311,16 @@ if menu == "Dashboard":
             )
 
         else:
+
             st.success(
                 "Inventory stock levels are healthy."
             )
 
     else:
-        st.info("No product inventory data available.")
+
+        st.info(
+            "No product inventory data available."
+        )
 
     st.divider()
 
@@ -281,6 +349,7 @@ if menu == "Dashboard":
         )
 
     else:
+
         st.info("No recent orders available.")
 
 # ====================================
@@ -294,13 +363,21 @@ elif menu == "Customers":
 
     with st.form("customer_form"):
 
-        name = st.text_input("Customer Name")
+        name = st.text_input(
+            "Customer Name"
+        )
 
-        phone = st.text_input("Phone Number")
+        phone = st.text_input(
+            "Phone Number"
+        )
 
-        email = st.text_input("Email")
+        email = st.text_input(
+            "Email"
+        )
 
-        city = st.text_input("City")
+        city = st.text_input(
+            "City"
+        )
 
         submitted = st.form_submit_button(
             "Add Customer"
@@ -355,7 +432,9 @@ elif menu == "Products":
 
     with st.form("product_form"):
 
-        name = st.text_input("Product Name")
+        name = st.text_input(
+            "Product Name"
+        )
 
         category = st.selectbox(
             "Category",
@@ -449,9 +528,13 @@ elif menu == "Orders":
 
     else:
 
-        customer_names = customer_df["name"].tolist()
+        customer_names = customer_df[
+            "name"
+        ].tolist()
 
-        product_names = product_df["name"].tolist()
+        product_names = product_df[
+            "name"
+        ].tolist()
 
         with st.form("order_form"):
 
@@ -484,7 +567,9 @@ elif menu == "Orders":
                 product_df["name"] == product_name
             ]
 
-            product_price = selected_product.iloc[0]["price"]
+            product_price = selected_product.iloc[
+                0
+            ]["price"]
 
             total_amount = int(
                 quantity * product_price
