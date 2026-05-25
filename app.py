@@ -157,6 +157,57 @@ elif menu == "Products":
 
     st.title("Product Inventory")
 
+    st.subheader("Add New Product")
+
+    with st.form("product_form"):
+
+        name = st.text_input("Product Name")
+
+        category = st.selectbox(
+            "Category",
+            [
+                "Beverage",
+                "Bakery",
+                "Ingredient",
+                "Frozen Food",
+                "Snack",
+                "Healthy"
+            ]
+        )
+
+        stock = st.number_input(
+            "Stock",
+            min_value=0,
+            step=1
+        )
+
+        price = st.number_input(
+            "Price",
+            min_value=0,
+            step=1000
+        )
+
+        submitted = st.form_submit_button("Add Product")
+
+        if submitted:
+
+            from services.product_service import add_product
+
+            add_product(
+                name,
+                category,
+                stock,
+                price
+            )
+
+            st.success("Product added successfully!")
+
+            st.rerun()
+
+    st.divider()
+
+    st.subheader("Product List")
+
     st.dataframe(product_df, use_container_width=True)
 
 # =========================
