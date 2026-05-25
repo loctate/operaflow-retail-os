@@ -4,7 +4,7 @@ import plotly.express as px
 
 from services.customer_service import get_customers
 from services.product_service import get_products
-from services.order_service import get_orders
+from services.order_service import get_orders, add_order
 
 # =========================
 # PAGE CONFIG
@@ -216,5 +216,80 @@ elif menu == "Products":
 elif menu == "Orders":
 
     st.title("Order Management")
+
+    st.subheader("Create New Order")
+
+    # =========================
+    # DROPDOWN DATA
+    # =========================
+
+    customer_names = customer_df["name"].tolist()
+
+    product_names = product_df["name"].tolist()
+
+    # =========================
+    # ORDER FORM
+    # =========================
+
+    with st.form("order_form"):
+
+        customer_name = st.selectbox(
+            "Select Customer",
+            customer_names
+        )
+
+        product_name = st.selectbox(
+            "Select Product",
+            product_names
+        )
+
+        quantity = st.number_input(
+            "Quantity",
+            min_value=1,
+            step=1
+        )
+
+        status = st.selectbox(
+            "Order Status",
+            [
+                "Pending",
+                "Processing",
+                "Completed"
+            ]
+        )
+
+        # =========================
+        # AUTO PRICE CALCULATION
+        # =========================
+
+        selected_product = product_df[
+            product_df["name"] == product_name
+        ]
+
+        product_price = selected_product.iloc[0]["price"]
+
+        total_amount = quantity * product_price
+
+        st.info(f"Total Amount: Rp {total_amount:,.0f}")
+
+        submitted = st.form_submit_button("Create Order")
+
+        if submitted:
+
+            add_order(
+                customer_name,
+                product_name,
+                quantity,
+                total_amount,
+                status
+            )
+
+            st.success("Order created successfully!")
+
+            st.rerun()
+
+    st.divider()
+
+    st.subheader("Order List")
 
     st.dataframe(order_df, use_container_width=True)
