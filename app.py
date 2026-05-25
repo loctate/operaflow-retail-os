@@ -97,14 +97,22 @@ if menu == "Dashboard":
     # =========================
     st.subheader("Revenue Trend")
 
+    order_df["created_at"] = pd.to_datetime(
+    order_df["created_at"]
+        )
+
+    order_df["order_date"] = order_df[
+        "created_at"
+        ].dt.date
+
     revenue_trend = order_df.groupby(
-        "created_at",
+        "order_date",
         as_index=False
-    )["total_amount"].sum()
+        )["total_amount"].sum()
 
     revenue_line = px.line(
         revenue_trend,
-        x="created_at",
+        x="order_date",
         y="total_amount",
         markers=True,
         title="Revenue Timeline"
