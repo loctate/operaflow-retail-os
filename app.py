@@ -751,6 +751,13 @@ elif menu == "POS":
                     int(quantity)
                 )
 
+                st.session_state.last_transaction = {
+                    "customer_name": customer_name,
+                    "product_name": selected_product,
+                    "quantity": quantity,
+                    "total_price": total_price
+                }
+
                 st.success(
                     "Transaction completed!"
                 )
@@ -758,3 +765,45 @@ elif menu == "POS":
                 st.balloons()
 
                 st.rerun()
+                # ====================================
+# RECEIPT SECTION
+# ====================================
+if "last_transaction" in st.session_state:
+
+    trx = st.session_state.last_transaction
+
+    st.divider()
+
+    st.subheader("Transaction Receipt")
+
+    receipt_html = f"""
+    <div style="
+        padding:20px;
+        border-radius:10px;
+        border:1px solid #444;
+        background-color:#111;
+    ">
+
+    <h3>OperaFlow Receipt</h3>
+
+    <hr>
+
+    <p><b>Customer:</b> {trx['customer_name']}</p>
+
+    <p><b>Product:</b> {trx['product_name']}</p>
+
+    <p><b>Quantity:</b> {trx['quantity']}</p>
+
+    <p><b>Total:</b> Rp {trx['total_price']:,.0f}</p>
+
+    <hr>
+
+    <p>Thank you for shopping!</p>
+
+    </div>
+    """
+
+    st.markdown(
+        receipt_html,
+        unsafe_allow_html=True
+    )
