@@ -123,6 +123,31 @@ elif menu == "Customers":
 
     st.title("Customer Database")
 
+    st.subheader("Add New Customer")
+
+    with st.form("customer_form"):
+
+        name = st.text_input("Customer Name")
+        phone = st.text_input("Phone Number")
+        email = st.text_input("Email")
+        city = st.text_input("City")
+
+        submitted = st.form_submit_button("Add Customer")
+
+        if submitted:
+
+            from services.customer_service import add_customer
+
+            add_customer(name, phone, email, city)
+
+            st.success("Customer added successfully!")
+
+            st.rerun()
+
+    st.divider()
+
+    st.subheader("Customer List")
+
     st.dataframe(customer_df, use_container_width=True)
 
 # =========================
