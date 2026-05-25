@@ -34,6 +34,60 @@ st.set_page_config(
 )
 
 # ====================================
+# CUSTOM CSS
+# ====================================
+st.markdown(
+    """
+    <style>
+
+    .stApp {
+        background-color: #0f1117;
+        color: white;
+    }
+
+    section[data-testid="stSidebar"] {
+        background-color: #151924;
+    }
+
+    .stMetric {
+        background-color: #1c2230;
+        padding: 15px;
+        border-radius: 12px;
+        border: 1px solid #2d3748;
+    }
+
+    div[data-testid="metric-container"] {
+        background-color: #1c2230;
+        border: 1px solid #2d3748;
+        padding: 15px;
+        border-radius: 12px;
+    }
+
+    .stDataFrame {
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .stButton>button {
+        width: 100%;
+        border-radius: 10px;
+        height: 45px;
+        border: none;
+        background-color: #3b82f6;
+        color: white;
+        font-weight: bold;
+    }
+
+    .stButton>button:hover {
+        background-color: #2563eb;
+    }
+
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+# ====================================
 # SESSION STATE
 # ====================================
 if "logged_in" not in st.session_state:
@@ -148,7 +202,13 @@ total_orders = len(order_df)
 # ====================================
 # SIDEBAR
 # ====================================
-st.sidebar.title("OperaFlow")
+st.sidebar.markdown(
+    """
+    # 🚀 OperaFlow
+
+    ### Retail Operating System
+    """
+)
 st.sidebar.subheader("Retail OS")
 
 st.sidebar.divider()
@@ -185,7 +245,14 @@ menu = st.sidebar.radio(
 # ====================================
 if menu == "Dashboard":
 
-    st.title("Retail Business Dashboard")
+    st.markdown(
+    """
+    # 🚀 OperaFlow Dashboard
+
+    Welcome back, Admin.
+    Here's your retail business overview today.
+    """
+)
 
     # ====================================
     # KPI CARDS
