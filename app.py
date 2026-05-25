@@ -18,18 +18,18 @@ from services.order_service import (
     add_order
 )
 
-# =========================
+# ====================================
 # PAGE CONFIG
-# =========================
+# ====================================
 st.set_page_config(
     page_title="OperaFlow",
     page_icon="📦",
     layout="wide"
 )
 
-# =========================
+# ====================================
 # LOAD DATA
-# =========================
+# ====================================
 customers = get_customers()
 products = get_products()
 orders = get_orders()
@@ -38,11 +38,37 @@ customer_df = pd.DataFrame(customers)
 product_df = pd.DataFrame(products)
 order_df = pd.DataFrame(orders)
 
-# =========================
+# ====================================
+# SAFE EMPTY DATA HANDLING
+# ====================================
+if not product_df.empty:
+    total_stock = product_df["stock"].sum()
+else:
+    total_stock = 0
+
+if not order_df.empty:
+    total_revenue = order_df["total_amount"].sum()
+else:
+    total_revenue = 0
+
+# ====================================
+# KPI DATA
+# ====================================
+total_customers = len(customer_df)
+total_products = len(product_df)
+total_orders = len(order_df)
+
+# ====================================
 # SIDEBAR
-# =========================
+# ====================================
 st.sidebar.title("OperaFlow")
 st.sidebar.subheader("Retail OS")
+
+st.sidebar.divider()
+
+st.sidebar.info(
+    "OperaFlow Retail Management System"
+)
 
 menu = st.sidebar.radio(
     "Navigation",
@@ -54,25 +80,16 @@ menu = st.sidebar.radio(
     ]
 )
 
-# =========================
-# KPI DATA
-# =========================
-total_customers = len(customer_df)
-total_products = len(product_df)
-total_orders = len(order_df)
-total_stock = product_df["stock"].sum()
-total_revenue = order_df["total_amount"].sum()
-
-# =========================
+# ====================================
 # DASHBOARD PAGE
-# =========================
+# ====================================
 if menu == "Dashboard":
 
     st.title("Retail Business Dashboard")
 
-    # =========================
+    # ====================================
     # KPI CARDS
-    # =========================
+    # ====================================
     col1, col2, col3, col4, col5 = st.columns(5)
 
     with col1:
@@ -88,135 +105,187 @@ if menu == "Dashboard":
         st.metric("Inventory Stock", total_stock)
 
     with col5:
-        st.metric("Revenue", f"Rp {total_revenue:,.0f}")
-
-    st.divider()
-
-    # =========================
-    # REVENUE TREND
-    # =========================
-    st.subheader("Revenue Trend")
-
-    order_df["created_at"] = pd.to_datetime(
-    order_df["created_at"]
+        st.metric(
+            "Revenue",
+            f"Rp {total_revenue:,.0f}"
         )
 
-    order_df["order_date"] = order_df[
-        "created_at"
+    st.divider()
+
+    # ====================================
+    # REVENUE TREND
+    # ====================================
+    st.subheader("Revenue Trend")
+
+    if not order_df.empty:
+
+        order_df["created_at"] = pd.to_datetime(
+            order_df["created_at"]
+        )
+
+        order_df["order_date"] = order_df[
+            "created_at"
         ].dt.date
 
-    revenue_trend = order_df.groupby(
-        "order_date",
-        as_index=False
+        revenue_trend = order_df.groupby(
+            "order_date",
+            as_index=False
         )["total_amount"].sum()
 
-    revenue_line = px.line(
-        revenue_trend,
-        x="order_date",
-        y="total_amount",
-        markers=True,
-        title="Revenue Timeline"
-    )
+        revenue_line = px.line(
+            revenue_trend,
+            x="order_date",
+            y="total_amount",
+            markers=True,
+            title="Revenue Timeline"
+        )
 
-    st.plotly_chart(
-        revenue_line,
-        use_container_width=True
-    )
+        st.plotly_chart(
+            revenue_line,
+            use_container_width=True
+        )
+
+    else:
+
+        st.info("No revenue data available.")
 
     st.divider()
 
-    # =========================
+    # ====================================
     # CHART SECTION
-    # =========================
+    # ====================================
     col1, col2 = st.columns(2)
 
     with col1:
 
-        revenue_chart = px.bar(
-            order_df,
-            x="product_name",
-            y="total_amount",
-            title="Revenue by Product"
-        )
+        if not order_df.empty:
 
-        st.plotly_chart(
-            revenue_chart,
-            use_container_width=True
-        )
+            revenue_chart = px.bar(
+                order_df,
+                x="product_name",
+                y="total_amount",
+                title="Revenue by Product"
+            )
+
+            st.plotly_chart(
+                revenue_chart,
+                use_container_width=True
+            )
+
+        else:
+
+            st.info("No order data available.")
 
     with col2:
 
-        status_chart = px.pie(
-            order_df,
-            names="status",
-            title="Order Status Distribution"
+        if not order_df.empty:
+
+            status_chart = px.pie(
+                order_df,
+                names="status",
+                title="Order Status Distribution"
+            )
+
+            st.plotly_chart(
+                status_chart,
+                use_container_width=True
+            )
+
+        else:
+
+            st.info("No status data available.")
+
+    st.divider()
+
+    # ====================================
+    # TOP SELLING PRODUCTS
+    # ====================================
+    st.subheader("Top Selling Products")
+
+    if not order_df.empty:
+
+        top_products = order_df.groupby(
+            "product_name",
+            as_index=False
+        )["quantity"].sum()
+
+        top_products_chart = px.bar(
+            top_products,
+            x="product_name",
+            y="quantity",
+            title="Most Ordered Products"
         )
 
         st.plotly_chart(
-            status_chart,
+            top_products_chart,
             use_container_width=True
         )
 
-    st.divider()
+    else:
 
-    # =========================
-    # TOP SELLING PRODUCTS
-    # =========================
-    st.subheader("Top Selling Products")
-
-    top_products = order_df.groupby(
-        "product_name",
-        as_index=False
-    )["quantity"].sum()
-
-    top_products_chart = px.bar(
-        top_products,
-        x="product_name",
-        y="quantity",
-        title="Most Ordered Products"
-    )
-
-    st.plotly_chart(
-        top_products_chart,
-        use_container_width=True
-    )
+        st.info("No product sales data available.")
 
     st.divider()
 
-    # =========================
+    # ====================================
     # LOW STOCK ALERT
-    # =========================
+    # ====================================
     st.subheader("Low Stock Alert")
 
     low_stock_df = product_df[
         product_df["stock"] < 25
     ]
 
-    st.dataframe(
-        low_stock_df,
-        use_container_width=True
-    )
+    if len(low_stock_df) > 0:
+
+        st.warning(
+            f"There are {len(low_stock_df)} low stock products!"
+        )
+
+        st.dataframe(
+            low_stock_df,
+            use_container_width=True
+        )
+
+    else:
+
+        st.success(
+            "Inventory stock levels are healthy."
+        )
 
     st.divider()
 
-    # =========================
+    # ====================================
     # RECENT ORDERS
-    # =========================
+    # ====================================
     st.subheader("Recent Orders")
 
-    recent_orders = order_df.sort_values(
-        by="created_at",
-        ascending=False
-    )
+    if not order_df.empty:
 
-    st.dataframe(
-        recent_orders.head(5),
-        use_container_width=True
-    )
+        recent_orders = order_df.sort_values(
+            by="created_at",
+            ascending=False
+        )
 
-# =========================
+        display_recent_orders = recent_orders.copy()
+
+        display_recent_orders["total_amount"] = (
+            display_recent_orders["total_amount"]
+            .apply(lambda x: f"Rp {x:,.0f}")
+        )
+
+        st.dataframe(
+            display_recent_orders.head(5),
+            use_container_width=True
+        )
+
+    else:
+
+        st.info("No recent orders available.")
+
+# ====================================
 # CUSTOMER PAGE
-# =========================
+# ====================================
 elif menu == "Customers":
 
     st.title("Customer Database")
@@ -261,9 +330,9 @@ elif menu == "Customers":
         use_container_width=True
     )
 
-# =========================
+# ====================================
 # PRODUCT PAGE
-# =========================
+# ====================================
 elif menu == "Products":
 
     st.title("Product Inventory")
@@ -321,30 +390,33 @@ elif menu == "Products":
 
     st.subheader("Product List")
 
+    display_product_df = product_df.copy()
+
+    if not display_product_df.empty:
+
+        display_product_df["price"] = (
+            display_product_df["price"]
+            .apply(lambda x: f"Rp {x:,.0f}")
+        )
+
     st.dataframe(
-        product_df,
+        display_product_df,
         use_container_width=True
     )
 
-# =========================
+# ====================================
 # ORDER PAGE
-# =========================
+# ====================================
 elif menu == "Orders":
 
     st.title("Order Management")
 
     st.subheader("Create New Order")
 
-    # =========================
-    # DROPDOWN DATA
-    # =========================
     customer_names = customer_df["name"].tolist()
 
     product_names = product_df["name"].tolist()
 
-    # =========================
-    # ORDER FORM
-    # =========================
     with st.form("order_form"):
 
         customer_name = st.selectbox(
@@ -372,9 +444,6 @@ elif menu == "Orders":
             ]
         )
 
-        # =========================
-        # AUTO PRICE CALCULATION
-        # =========================
         selected_product = product_df[
             product_df["name"] == product_name
         ]
@@ -413,7 +482,16 @@ elif menu == "Orders":
 
     st.subheader("Order List")
 
+    display_order_df = order_df.copy()
+
+    if not display_order_df.empty:
+
+        display_order_df["total_amount"] = (
+            display_order_df["total_amount"]
+            .apply(lambda x: f"Rp {x:,.0f}")
+        )
+
     st.dataframe(
-        order_df,
+        display_order_df,
         use_container_width=True
     )
