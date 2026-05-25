@@ -1,27 +1,17 @@
-from config.supabase_config import supabase
+from services.supabase_client import supabase
 
 # ====================================
 # GET PRODUCTS
 # ====================================
 def get_products():
-
-    response = supabase.table(
-        "products"
-    ).select("*").execute()
-
+    response = supabase.table("products").select("*").execute()
     return response.data
 
 
 # ====================================
 # ADD PRODUCT
 # ====================================
-def add_product(
-    name,
-    category,
-    stock,
-    price
-):
-
+def add_product(name, category, stock, price):
     data = {
         "name": name,
         "category": category,
@@ -29,77 +19,58 @@ def add_product(
         "price": int(price)
     }
 
-    response = supabase.table(
-        "products"
-    ).insert(data).execute()
-
+    response = supabase.table("products").insert(data).execute()
     return response
 
 
 # ====================================
-# UPDATE STOCK (AUTO REDUCE)
+# UPDATE STOCK / REDUCE STOCK
 # ====================================
-def update_stock(
-    product_name,
-    quantity
-):
-
-    product = supabase.table(
-        "products"
-    ).select("*").eq(
-        "name",
-        product_name
-    ).execute()
+def update_stock(product_name, quantity):
+    product = (
+        supabase.table("products")
+        .select("*")
+        .eq("name", product_name)
+        .execute()
+    )
 
     if product.data:
-
-        current_stock = product.data[0]["stock"]
-
-        new_stock = current_stock - quantity
+        current_stock = int(product.data[0]["stock"])
+        new_stock = current_stock - int(quantity)
 
         if new_stock < 0:
             new_stock = 0
 
-        supabase.table(
-            "products"
-        ).update(
-            {
-                "stock": new_stock
-            }
-        ).eq(
-            "name",
-            product_name
-        ).execute()
+        response = (
+            supabase.table("products")
+            .update({"stock": new_stock})
+            .eq("name", product_name)
+            .execute()
+        )
+
+        return response
 
 
 # ====================================
-# RESTOCK PRODUCT
+# RESTOCK PRODUCT / ADD STOCK
 # ====================================
-def restock_product(
-    product_name,
-    added_stock
-):
-
-    product = supabase.table(
-        "products"
-    ).select("*").eq(
-        "name",
-        product_name
-    ).execute()
+def restock_product(product_name, added_stock):
+    product = (
+        supabase.table("products")
+        .select("*")
+        .eq("name", product_name)
+        .execute()
+    )
 
     if product.data:
+        current_stock = int(product.data[0]["stock"])
+        new_stock = current_stock + int(added_stock)
 
-        current_stock = product.data[0]["stock"]
+        response = (
+            supabase.table("products")
+            .update({"stock": new_stock})
+            .eq("name", product_name)
+            .execute()
+        )
 
-        new_stock = current_stock + added_stock
-
-        supabase.table(
-            "products"
-        ).update(
-            {
-                "stock": new_stock
-            }
-        ).eq(
-            "name",
-            product_name
-        ).execute()
+        return response
