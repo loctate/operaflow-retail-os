@@ -268,7 +268,7 @@ elif menu == "Orders":
 
         product_price = selected_product.iloc[0]["price"]
 
-        total_amount = quantity * product_price
+        total_amount = int(quantity * product_price)
 
         st.info(f"Total Amount: Rp {total_amount:,.0f}")
 
@@ -279,8 +279,8 @@ elif menu == "Orders":
             add_order(
                 customer_name,
                 product_name,
-                quantity,
-                total_amount,
+                int(quantity),
+                int(total_amount),
                 status
             )
 
