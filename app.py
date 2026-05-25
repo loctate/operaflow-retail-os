@@ -41,41 +41,71 @@ if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
 # ====================================
+# LOGIN FUNCTION
+# ====================================
+def login():
+
+    if (
+        st.session_state.username
+        == ADMIN_USERNAME
+        and
+        st.session_state.password
+        == ADMIN_PASSWORD
+    ):
+
+        st.session_state.logged_in = True
+        st.session_state.login_error = False
+
+    else:
+
+        st.session_state.login_error = True
+
+# ====================================
 # LOGIN PAGE
 # ====================================
 if not st.session_state.logged_in:
 
     st.title("OperaFlow Login")
 
-    st.subheader("Retail Management System")
-
-    username = st.text_input("Username")
-
-    password = st.text_input(
-        "Password",
-        type="password"
+    st.caption(
+        "Cloud Retail Management Dashboard"
     )
 
-    login_button = st.button("Login")
+    st.subheader(
+        "Retail Management System"
+    )
 
-    if login_button:
+    if "login_error" not in st.session_state:
+        st.session_state.login_error = False
 
-        if (
-            username == ADMIN_USERNAME
-            and password == ADMIN_PASSWORD
-        ):
+    st.text_input(
+        "Username",
+        key="username"
+    )
 
-            st.session_state.logged_in = True
+    st.text_input(
+        "Password",
+        type="password",
+        key="password",
+        on_change=login
+    )
 
-            st.success("Login successful!")
+    st.button(
+        "Login",
+        on_click=login
+    )
 
-            st.rerun()
+    if st.session_state.login_error:
 
-        else:
+        st.error(
+            "Invalid username or password"
+        )
 
-            st.error(
-                "Invalid username or password"
-            )
+    if st.session_state.logged_in:
+
+        st.success("Login successful!")
+
+        st.rerun()
 
     st.stop()
 
