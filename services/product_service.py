@@ -1,30 +1,48 @@
-from services.supabase_client import supabase
+from config.supabase_config import supabase
 
-# =========================
+# ====================================
 # GET PRODUCTS
-# =========================
+# ====================================
 def get_products():
 
-    response = supabase.table("products").select("*").execute()
+    response = supabase.table(
+        "products"
+    ).select("*").execute()
 
     return response.data
 
-# =========================
+
+# ====================================
 # ADD PRODUCT
-# =========================
-def add_product(name, category, stock, price):
+# ====================================
+def add_product(
+    name,
+    category,
+    stock,
+    price
+):
 
     data = {
         "name": name,
         "category": category,
-        "stock": stock,
-        "price": price
+        "stock": int(stock),
+        "price": int(price)
     }
 
-    response = supabase.table("products").insert(data).execute()
+    response = supabase.table(
+        "products"
+    ).insert(data).execute()
 
     return response
-def update_stock(product_name, quantity):
+
+
+# ====================================
+# UPDATE STOCK (AUTO REDUCE)
+# ====================================
+def update_stock(
+    product_name,
+    quantity
+):
 
     product = supabase.table(
         "products"
@@ -42,7 +60,9 @@ def update_stock(product_name, quantity):
         if new_stock < 0:
             new_stock = 0
 
-        supabase.table("products").update(
+        supabase.table(
+            "products"
+        ).update(
             {
                 "stock": new_stock
             }
@@ -50,7 +70,15 @@ def update_stock(product_name, quantity):
             "name",
             product_name
         ).execute()
-def restock_product(product_name, added_stock):
+
+
+# ====================================
+# RESTOCK PRODUCT
+# ====================================
+def restock_product(
+    product_name,
+    added_stock
+):
 
     product = supabase.table(
         "products"
@@ -65,7 +93,9 @@ def restock_product(product_name, added_stock):
 
         new_stock = current_stock + added_stock
 
-        supabase.table("products").update(
+        supabase.table(
+            "products"
+        ).update(
             {
                 "stock": new_stock
             }
