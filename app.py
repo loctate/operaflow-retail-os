@@ -2,6 +2,9 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
+from fpdf import FPDF
+from datetime import datetime
+
 from services.customer_service import (
     get_customers,
     add_customer
@@ -39,7 +42,6 @@ st.set_page_config(
 st.markdown(
     """
     <style>
-
     .stApp {
         background-color: #0f1117;
         color: white;
@@ -69,7 +71,6 @@ st.markdown(
     .stButton > button:hover {
         background-color: #2563eb;
     }
-
     </style>
     """,
     unsafe_allow_html=True
@@ -93,19 +94,76 @@ if "last_transaction" not in st.session_state:
 def login():
 
     if (
-        st.session_state.username
-        == ADMIN_USERNAME
-        and
-        st.session_state.password
-        == ADMIN_PASSWORD
+        st.session_state.username == ADMIN_USERNAME
+        and st.session_state.password == ADMIN_PASSWORD
     ):
-
         st.session_state.logged_in = True
         st.session_state.login_error = False
 
     else:
-
         st.session_state.login_error = True
+
+
+# ====================================
+# PDF RECEIPT FUNCTION
+# ====================================
+def generate_receipt_pdf(trx):
+
+    pdf = FPDF()
+    pdf.add_page()
+
+    pdf.set_font("Arial", "B", 16)
+    pdf.cell(
+        0,
+        10,
+        "OperaFlow Receipt",
+        ln=True,
+        align="C"
+    )
+
+    pdf.ln(10)
+
+    pdf.set_font("Arial", "", 12)
+
+    pdf.cell(
+        0,
+        10,
+        f"Date: {datetime.now().strftime('%d-%m-%Y %H:%M')}",
+        ln=True
+    )
+
+    pdf.cell(
+        0,
+        10,
+        f"Customer: {trx.get('customer_name', '-')}",
+        ln=True
+    )
+
+    pdf.cell(
+        0,
+        10,
+        f"Total Items: {trx.get('total_items', 1)}",
+        ln=True
+    )
+
+    pdf.cell(
+        0,
+        10,
+        f"Total Payment: Rp {trx.get('total_price', 0):,.0f}",
+        ln=True
+    )
+
+    pdf.ln(10)
+
+    pdf.cell(
+        0,
+        10,
+        "Thank you for shopping!",
+        ln=True
+    )
+
+    return bytes(pdf.output(dest="S"))
+
 
 # ====================================
 # LOGIN PAGE
@@ -143,15 +201,10 @@ if not st.session_state.logged_in:
     )
 
     if st.session_state.login_error:
-
-        st.error(
-            "Invalid username or password"
-        )
+        st.error("Invalid username or password")
 
     if st.session_state.logged_in:
-
         st.success("Login successful!")
-
         st.rerun()
 
     st.stop()
@@ -180,9 +233,6 @@ if not order_df.empty:
 else:
     total_revenue = 0
 
-# ====================================
-# KPI
-# ====================================
 total_customers = len(customer_df)
 total_products = len(product_df)
 total_orders = len(order_df)
@@ -204,18 +254,10 @@ st.sidebar.info(
     "Cloud Retail Management System"
 )
 
-# ====================================
-# LOGOUT
-# ====================================
 if st.sidebar.button("Logout"):
-
     st.session_state.logged_in = False
-
     st.rerun()
 
-# ====================================
-# MENU
-# ====================================
 menu = st.sidebar.radio(
     "Navigation",
     [
@@ -236,14 +278,11 @@ if menu == "Dashboard":
         """
         # 🚀 OperaFlow Dashboard
 
-        Welcome back, Admin.
+        Welcome back, Admin.  
         Here's your retail business overview today.
         """
     )
 
-    # ====================================
-    # KPI CARDS
-    # ====================================
     col1, col2, col3, col4, col5 = st.columns(5)
 
     with col1:
@@ -256,10 +295,7 @@ if menu == "Dashboard":
         st.metric("Orders", total_orders)
 
     with col4:
-        st.metric(
-            "Inventory Stock",
-            total_stock
-        )
+        st.metric("Inventory Stock", total_stock)
 
     with col5:
         st.metric(
@@ -269,9 +305,6 @@ if menu == "Dashboard":
 
     st.divider()
 
-    # ====================================
-    # REVENUE TREND
-    # ====================================
     st.subheader("Revenue Trend")
 
     if not order_df.empty:
@@ -281,8 +314,7 @@ if menu == "Dashboard":
         )
 
         order_df["order_date"] = (
-            order_df["created_at"]
-            .dt.date
+            order_df["created_at"].dt.date
         )
 
         revenue_trend = order_df.groupby(
@@ -304,16 +336,10 @@ if menu == "Dashboard":
         )
 
     else:
-
-        st.info(
-            "No revenue data available."
-        )
+        st.info("No revenue data available.")
 
     st.divider()
 
-    # ====================================
-    # LOW STOCK ALERT
-    # ====================================
     st.subheader("Low Stock Alert")
 
     if not product_df.empty:
@@ -334,7 +360,6 @@ if menu == "Dashboard":
             )
 
         else:
-
             st.success(
                 "Inventory stock levels are healthy."
             )
@@ -348,21 +373,10 @@ elif menu == "Customers":
 
     with st.form("customer_form"):
 
-        name = st.text_input(
-            "Customer Name"
-        )
-
-        phone = st.text_input(
-            "Phone Number"
-        )
-
-        email = st.text_input(
-            "Email"
-        )
-
-        city = st.text_input(
-            "City"
-        )
+        name = st.text_input("Customer Name")
+        phone = st.text_input("Phone Number")
+        email = st.text_input("Email")
+        city = st.text_input("City")
 
         submitted = st.form_submit_button(
             "Add Customer"
@@ -399,9 +413,7 @@ elif menu == "Products":
 
     with st.form("product_form"):
 
-        name = st.text_input(
-            "Product Name"
-        )
+        name = st.text_input("Product Name")
 
         category = st.selectbox(
             "Category",
@@ -454,10 +466,7 @@ elif menu == "Products":
 
         display_products["price"] = (
             display_products["price"]
-            .apply(
-                lambda x:
-                f"Rp {x:,.0f}"
-            )
+            .apply(lambda x: f"Rp {x:,.0f}")
         )
 
     st.dataframe(
@@ -478,10 +487,7 @@ elif menu == "Orders":
 
         display_orders["total_amount"] = (
             display_orders["total_amount"]
-            .apply(
-                lambda x:
-                f"Rp {x:,.0f}"
-            )
+            .apply(lambda x: f"Rp {x:,.0f}")
         )
 
         st.dataframe(
@@ -490,10 +496,7 @@ elif menu == "Orders":
         )
 
     else:
-
-        st.info(
-            "No order data available."
-        )
+        st.info("No order data available.")
 
 # ====================================
 # POS PAGE
@@ -506,15 +509,11 @@ elif menu == "POS":
 
     if product_df.empty:
 
-        st.warning(
-            "No products available."
-        )
+        st.warning("No products available.")
 
     else:
 
-        product_names = product_df[
-            "name"
-        ].tolist()
+        product_names = product_df["name"].tolist()
 
         col1, col2 = st.columns(2)
 
@@ -526,8 +525,7 @@ elif menu == "POS":
             )
 
         product_data = product_df[
-            product_df["name"]
-            == selected_product
+            product_df["name"] == selected_product
         ]
 
         product_price = int(
@@ -550,18 +548,13 @@ elif menu == "POS":
             f"Stock Available: {current_stock}"
         )
 
-        total_price = (
-            product_price * quantity
-        )
+        total_price = product_price * quantity
 
         st.metric(
             "Item Total",
             f"Rp {total_price:,.0f}"
         )
 
-        # ====================================
-        # ADD TO CART
-        # ====================================
         if st.button("Add to Cart"):
 
             cart_item = {
@@ -575,17 +568,12 @@ elif menu == "POS":
                 cart_item
             )
 
-            st.success(
-                "Item added to cart!"
-            )
+            st.success("Item added to cart!")
 
             st.rerun()
 
         st.divider()
 
-        # ====================================
-        # CART
-        # ====================================
         st.subheader("Shopping Cart")
 
         if len(st.session_state.cart) == 0:
@@ -594,9 +582,6 @@ elif menu == "POS":
 
         else:
 
-            # ====================================
-            # CART HEADER
-            # ====================================
             header1, header2, header3, header4, header5 = st.columns(
                 [3, 1, 2, 2, 1]
             )
@@ -618,9 +603,6 @@ elif menu == "POS":
 
             st.divider()
 
-            # ====================================
-            # CART ITEMS
-            # ====================================
             for index, item in enumerate(
                 st.session_state.cart
             ):
@@ -656,17 +638,12 @@ elif menu == "POS":
                         key=f"remove_{index}"
                     ):
 
-                        st.session_state.cart.pop(
-                            index
-                        )
+                        st.session_state.cart.pop(index)
 
                         st.rerun()
 
             st.divider()
 
-            # ====================================
-            # GRAND TOTAL
-            # ====================================
             grand_total = sum(
                 item["total"]
                 for item in st.session_state.cart
@@ -681,9 +658,6 @@ elif menu == "POS":
                 "Customer Name"
             )
 
-            # ====================================
-            # CHECKOUT
-            # ====================================
             if st.button("Checkout All"):
 
                 if customer_name == "":
@@ -727,31 +701,24 @@ elif menu == "POS":
 
                     st.rerun()
 
-            # ====================================
-            # CLEAR CART
-            # ====================================
             if st.button("Clear Cart"):
 
                 st.session_state.cart = []
 
-                st.warning(
-                    "Cart cleared."
-                )
+                st.warning("Cart cleared.")
 
                 st.rerun()
 
     # ====================================
     # RECEIPT SECTION
     # ====================================
-    if "last_transaction" in st.session_state:
+    if st.session_state.last_transaction:
 
         trx = st.session_state.last_transaction
 
         st.divider()
 
-        st.subheader(
-            "Transaction Receipt"
-        )
+        st.subheader("Transaction Receipt")
 
         receipt_html = f"""
         <div style="
@@ -760,28 +727,26 @@ elif menu == "POS":
             border:1px solid #444;
             background-color:#111;
         ">
-
-        <h3>OperaFlow Receipt</h3>
-
-        <hr>
-
-        <p><b>Customer:</b>
-        {trx.get('customer_name', '-')}</p>
-
-        <p><b>Total Items:</b>
-        {trx.get('total_items', 1)}</p>
-
-        <p><b>Total Payment:</b>
-        Rp {trx.get('total_price', 0):,.0f}</p>
-
-        <hr>
-
-        <p>Thank you for shopping!</p>
-
+            <h3>OperaFlow Receipt</h3>
+            <hr>
+            <p><b>Customer:</b> {trx.get('customer_name', '-')}</p>
+            <p><b>Total Items:</b> {trx.get('total_items', 1)}</p>
+            <p><b>Total Payment:</b> Rp {trx.get('total_price', 0):,.0f}</p>
+            <hr>
+            <p>Thank you for shopping!</p>
         </div>
         """
 
         st.markdown(
             receipt_html,
             unsafe_allow_html=True
+        )
+
+        pdf_receipt = generate_receipt_pdf(trx)
+
+        st.download_button(
+            label="Download Receipt PDF",
+            data=pdf_receipt,
+            file_name="operaflow_receipt.pdf",
+            mime="application/pdf"
         )
