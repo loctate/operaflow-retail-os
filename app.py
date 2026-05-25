@@ -10,70 +10,46 @@ from services.product_service import get_products, add_product, update_stock, re
 from services.order_service import get_orders, add_order
 from services.inventory_log_service import add_inventory_log, get_inventory_logs
 from services.supplier_service import get_suppliers, add_supplier
+from services.expense_service import get_expenses, add_expense
 
 USERS = {
-    "admin": {
-        "password": "admin123",
-        "role": "admin"
-    },
-    "cashier": {
-        "password": "cashier123",
-        "role": "cashier"
-    }
+    "admin": {"password": "admin123", "role": "admin"},
+    "cashier": {"password": "cashier123", "role": "cashier"}
 }
 
-st.set_page_config(
-    page_title="OperaFlow",
-    page_icon="🚀",
-    layout="wide"
-)
+st.set_page_config(page_title="OperaFlow", page_icon="🚀", layout="wide")
 
-st.markdown(
-    """
-    <style>
-    .stApp { background-color: #0f1117; color: white; }
-
-    section[data-testid="stSidebar"] {
-        background-color: #151924;
-    }
-
-    div[data-testid="metric-container"] {
-        background-color: #1c2230;
-        border: 1px solid #2d3748;
-        padding: 15px;
-        border-radius: 12px;
-    }
-
-    .stButton > button {
-        width: 100%;
-        border-radius: 10px;
-        height: 45px;
-        border: none;
-        background-color: #3b82f6;
-        color: white;
-        font-weight: bold;
-    }
-
-    .stButton > button:hover {
-        background-color: #2563eb;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+st.markdown("""
+<style>
+.stApp { background-color: #0f1117; color: white; }
+section[data-testid="stSidebar"] { background-color: #151924; }
+div[data-testid="metric-container"] {
+    background-color: #1c2230;
+    border: 1px solid #2d3748;
+    padding: 15px;
+    border-radius: 12px;
+}
+.stButton > button {
+    width: 100%;
+    border-radius: 10px;
+    height: 45px;
+    border: none;
+    background-color: #3b82f6;
+    color: white;
+    font-weight: bold;
+}
+.stButton > button:hover { background-color: #2563eb; }
+</style>
+""", unsafe_allow_html=True)
 
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
-
 if "cart" not in st.session_state:
     st.session_state.cart = []
-
 if "last_transaction" not in st.session_state:
     st.session_state.last_transaction = {}
-
 if "role" not in st.session_state:
     st.session_state.role = None
-
 if "current_user" not in st.session_state:
     st.session_state.current_user = None
 
@@ -94,13 +70,11 @@ def login():
 def generate_receipt_pdf(trx):
     pdf = FPDF()
     pdf.add_page()
-
     pdf.set_font("Arial", "B", 16)
     pdf.cell(0, 10, "OperaFlow Receipt", ln=True, align="C")
 
     pdf.ln(10)
     pdf.set_font("Arial", "", 12)
-
     pdf.cell(0, 10, f"Date: {datetime.now().strftime('%d-%m-%Y %H:%M')}", ln=True)
     pdf.cell(0, 10, f"Customer: {trx.get('customer_name', '-')}", ln=True)
     pdf.cell(0, 10, f"Total Items: {trx.get('total_items', 1)}", ln=True)
@@ -126,14 +100,7 @@ if not st.session_state.logged_in:
         st.session_state.login_error = False
 
     st.text_input("Username", key="username")
-
-    st.text_input(
-        "Password",
-        type="password",
-        key="password",
-        on_change=login
-    )
-
+    st.text_input("Password", type="password", key="password", on_change=login)
     st.button("Login", on_click=login)
 
     if st.session_state.login_error:
@@ -151,12 +118,14 @@ products = get_products()
 orders = get_orders()
 inventory_logs = get_inventory_logs()
 suppliers = get_suppliers()
+expenses = get_expenses()
 
 customer_df = pd.DataFrame(customers)
 product_df = pd.DataFrame(products)
 order_df = pd.DataFrame(orders)
 inventory_log_df = pd.DataFrame(inventory_logs)
 supplier_df = pd.DataFrame(suppliers)
+expense_df = pd.DataFrame(expenses)
 
 total_customers = len(customer_df)
 total_products = len(product_df)
@@ -164,21 +133,19 @@ total_orders = len(order_df)
 
 total_stock = product_df["stock"].sum() if not product_df.empty else 0
 total_revenue = order_df["total_amount"].sum() if not order_df.empty else 0
+total_expenses = expense_df["amount"].sum() if not expense_df.empty else 0
+net_profit = total_revenue - total_expenses
 
-st.sidebar.markdown(
-    """
-    # 🚀 OperaFlow
+st.sidebar.markdown("""
+# 🚀 OperaFlow
 
-    ### Retail Operating System
-    """
-)
+### Retail Operating System
+""")
 
 st.sidebar.divider()
-
 st.sidebar.success(
     f"Logged in as: {st.session_state.current_user} ({st.session_state.role})"
 )
-
 st.sidebar.info("Cloud Retail Management System")
 
 if st.sidebar.button("Logout"):
@@ -197,49 +164,37 @@ if st.session_state.role == "admin":
         "Reports",
         "Inventory Logs",
         "Suppliers",
+        "Expenses",
+        "Profit Dashboard",
         "AI Insights"
     ]
-
 elif st.session_state.role == "cashier":
-    menu_options = [
-        "POS",
-        "Orders"
-    ]
-
+    menu_options = ["POS", "Orders"]
 else:
     menu_options = []
 
-menu = st.sidebar.radio(
-    "Navigation",
-    menu_options
-)
+menu = st.sidebar.radio("Navigation", menu_options)
 
 
 if menu == "Dashboard":
 
-    st.markdown(
-        """
-        # 🚀 OperaFlow Dashboard
+    st.markdown("""
+    # 🚀 OperaFlow Dashboard
 
-        Welcome back, Admin.  
-        Here's your retail business overview today.
-        """
-    )
+    Welcome back, Admin.  
+    Here's your retail business overview today.
+    """)
 
     col1, col2, col3, col4, col5 = st.columns(5)
 
     with col1:
         st.metric("Customers", total_customers)
-
     with col2:
         st.metric("Products", total_products)
-
     with col3:
         st.metric("Orders", total_orders)
-
     with col4:
         st.metric("Inventory Stock", total_stock)
-
     with col5:
         st.metric("Revenue", f"Rp {total_revenue:,.0f}")
 
@@ -314,14 +269,7 @@ elif menu == "Products":
 
         category = st.selectbox(
             "Category",
-            [
-                "Beverage",
-                "Bakery",
-                "Ingredient",
-                "Frozen Food",
-                "Snack",
-                "Healthy"
-            ]
+            ["Beverage", "Bakery", "Ingredient", "Frozen Food", "Snack", "Healthy"]
         )
 
         stock = st.number_input("Stock", min_value=0, step=1)
@@ -335,7 +283,6 @@ elif menu == "Products":
             st.rerun()
 
     st.divider()
-
     st.subheader("Restock Product")
 
     if product_df.empty:
@@ -355,10 +302,7 @@ elif menu == "Products":
         )
 
         if st.button("Restock Product"):
-            restock_product(
-                restock_product_name,
-                int(added_stock)
-            )
+            restock_product(restock_product_name, int(added_stock))
 
             add_inventory_log(
                 restock_product_name,
@@ -370,7 +314,6 @@ elif menu == "Products":
             st.rerun()
 
     st.divider()
-
     st.subheader("Product List")
 
     display_products = product_df.copy()
@@ -406,7 +349,6 @@ elif menu == "POS":
 
     if product_df.empty:
         st.warning("No products available.")
-
     else:
         product_names = product_df["name"].tolist()
 
@@ -449,23 +391,18 @@ elif menu == "POS":
 
         if len(st.session_state.cart) == 0:
             st.info("Cart is empty.")
-
         else:
             for index, item in enumerate(st.session_state.cart):
                 col1, col2, col3, col4, col5 = st.columns([3, 1, 2, 2, 1])
 
                 with col1:
                     st.write(item["product_name"])
-
                 with col2:
                     st.write(item["quantity"])
-
                 with col3:
                     st.write(f"Rp {item['price']:,.0f}")
-
                 with col4:
                     st.write(f"Rp {item['total']:,.0f}")
-
                 with col5:
                     if st.button("❌", key=f"remove_{index}"):
                         st.session_state.cart.pop(index)
@@ -570,15 +507,12 @@ elif menu == "Reports":
 
         with col1:
             st.metric("Total Revenue", f"Rp {total_sales:,.0f}")
-
         with col2:
             st.metric("Total Transactions", total_transactions)
-
         with col3:
             st.metric("Average Order", f"Rp {avg_order:,.0f}")
 
         st.divider()
-
         st.subheader("Sales by Product")
 
         product_sales = order_df.groupby(
@@ -623,10 +557,7 @@ elif menu == "Inventory Logs":
             ascending=False
         )
 
-        st.dataframe(
-            display_logs,
-            use_container_width=True
-        )
+        st.dataframe(display_logs, use_container_width=True)
 
 
 elif menu == "Suppliers":
@@ -669,13 +600,99 @@ elif menu == "Suppliers":
             st.rerun()
 
     st.divider()
-
     st.subheader("Supplier List")
+    st.dataframe(supplier_df, use_container_width=True)
 
-    st.dataframe(
-        supplier_df,
-        use_container_width=True
-    )
+
+elif menu == "Expenses":
+
+    st.title("Expense Tracking")
+
+    st.subheader("Add New Expense")
+
+    with st.form("expense_form"):
+        expense_name = st.text_input("Expense Name")
+
+        category = st.selectbox(
+            "Category",
+            [
+                "Rent",
+                "Salary",
+                "Utilities",
+                "Internet",
+                "Packaging",
+                "Marketing",
+                "Transport",
+                "Other"
+            ]
+        )
+
+        amount = st.number_input("Amount", min_value=0, step=1000)
+
+        description = st.text_area("Description")
+
+        submitted = st.form_submit_button("Add Expense")
+
+        if submitted:
+            add_expense(
+                expense_name,
+                category,
+                int(amount),
+                description
+            )
+
+            st.success("Expense added successfully!")
+            st.rerun()
+
+    st.divider()
+
+    st.subheader("Expense List")
+
+    display_expense_df = expense_df.copy()
+
+    if not display_expense_df.empty:
+        display_expense_df["amount"] = display_expense_df["amount"].apply(
+            lambda x: f"Rp {x:,.0f}"
+        )
+
+    st.dataframe(display_expense_df, use_container_width=True)
+
+
+elif menu == "Profit Dashboard":
+
+    st.title("Profit Dashboard")
+
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        st.metric("Total Revenue", f"Rp {total_revenue:,.0f}")
+
+    with col2:
+        st.metric("Total Expenses", f"Rp {total_expenses:,.0f}")
+
+    with col3:
+        st.metric("Net Profit", f"Rp {net_profit:,.0f}")
+
+    st.divider()
+
+    st.subheader("Expense Breakdown")
+
+    if not expense_df.empty:
+        expense_by_category = expense_df.groupby(
+            "category",
+            as_index=False
+        )["amount"].sum()
+
+        expense_chart = px.bar(
+            expense_by_category,
+            x="category",
+            y="amount",
+            title="Expenses by Category"
+        )
+
+        st.plotly_chart(expense_chart, use_container_width=True)
+    else:
+        st.info("No expense data available.")
 
 
 elif menu == "AI Insights":
@@ -685,23 +702,15 @@ elif menu == "AI Insights":
     st.subheader("Smart Restock Recommendation")
 
     if not product_df.empty:
-        low_stock_products = product_df[
-            product_df["stock"] < 20
-        ]
+        low_stock_products = product_df[product_df["stock"] < 20]
 
         if len(low_stock_products) > 0:
             st.warning(
                 "These products are running low and should be restocked soon."
             )
-
-            st.dataframe(
-                low_stock_products,
-                use_container_width=True
-            )
+            st.dataframe(low_stock_products, use_container_width=True)
         else:
-            st.success(
-                "All products currently have healthy stock levels."
-            )
+            st.success("All products currently have healthy stock levels.")
 
     st.divider()
 
@@ -743,10 +752,7 @@ elif menu == "AI Insights":
         ]
 
         if len(slow_products) > 0:
-            st.warning(
-                "These products have low or no sales activity."
-            )
-
+            st.warning("These products have low or no sales activity.")
             st.dataframe(slow_products, use_container_width=True)
         else:
             st.success("All products have sales activity.")
@@ -766,6 +772,10 @@ elif menu == "AI Insights":
         • Total Orders: {total_orders}
 
         • Current Revenue: Rp {total_revenue:,.0f}
+
+        • Total Expenses: Rp {total_expenses:,.0f}
+
+        • Net Profit: Rp {net_profit:,.0f}
 
         • System recommends monitoring low-stock products regularly.
 
