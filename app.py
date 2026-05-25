@@ -8,6 +8,7 @@ from datetime import datetime
 from services.customer_service import get_customers, add_customer
 from services.product_service import get_products, add_product, update_stock, restock_product
 from services.order_service import get_orders, add_order
+from services.inventory_log_service import add_inventory_log, get_inventory_logs
 
 ADMIN_USERNAME = "admin"
 ADMIN_PASSWORD = "admin123"
@@ -66,26 +67,21 @@ def login():
 def generate_receipt_pdf(trx):
     pdf = FPDF()
     pdf.add_page()
-
     pdf.set_font("Arial", "B", 16)
     pdf.cell(0, 10, "OperaFlow Receipt", ln=True, align="C")
 
     pdf.ln(10)
     pdf.set_font("Arial", "", 12)
-
     pdf.cell(0, 10, f"Date: {datetime.now().strftime('%d-%m-%Y %H:%M')}", ln=True)
     pdf.cell(0, 10, f"Customer: {trx.get('customer_name', '-')}", ln=True)
     pdf.cell(0, 10, f"Total Items: {trx.get('total_items', 1)}", ln=True)
     pdf.cell(0, 10, f"Total Payment: Rp {trx.get('total_price', 0):,.0f}", ln=True)
-
     pdf.ln(10)
     pdf.cell(0, 10, "Thank you for shopping!", ln=True)
 
     pdf_output = pdf.output(dest="S")
-
     if isinstance(pdf_output, str):
         return pdf_output.encode("latin-1")
-
     return bytes(pdf_output)
 
 if not st.session_state.logged_in:
@@ -97,14 +93,7 @@ if not st.session_state.logged_in:
         st.session_state.login_error = False
 
     st.text_input("Username", key="username")
-
-    st.text_input(
-        "Password",
-        type="password",
-        key="password",
-        on_change=login
-    )
-
+    st.text_input("Password", type="password", key="password", on_change=login)
     st.button("Login", on_click=login)
 
     if st.session_state.login_error:
@@ -119,10 +108,12 @@ if not st.session_state.logged_in:
 customers = get_customers()
 products = get_products()
 orders = get_orders()
+inventory_logs = get_inventory_logs()
 
 customer_df = pd.DataFrame(customers)
 product_df = pd.DataFrame(products)
 order_df = pd.DataFrame(orders)
+inventory_log_df = pd.DataFrame(inventory_logs)
 
 total_customers = len(customer_df)
 total_products = len(product_df)
@@ -153,7 +144,8 @@ menu = st.sidebar.radio(
         "Products",
         "Orders",
         "POS",
-        "Reports"
+        "Reports",
+        "Inventory Logs"
     ]
 )
 
@@ -206,7 +198,6 @@ if menu == "Dashboard":
         )
 
         st.plotly_chart(revenue_chart, use_container_width=True)
-
     else:
         st.info("No revenue data available.")
 
@@ -301,6 +292,12 @@ elif menu == "Products":
                 int(added_stock)
             )
 
+            add_inventory_log(
+                restock_product_name,
+                "IN",
+                int(added_stock)
+            )
+
             st.success("Product stock updated successfully!")
             st.rerun()
 
@@ -329,7 +326,6 @@ elif menu == "Orders":
         )
 
         st.dataframe(display_orders, use_container_width=True)
-
     else:
         st.info("No order data available.")
 
@@ -340,7 +336,6 @@ elif menu == "POS":
 
     if product_df.empty:
         st.warning("No products available.")
-
     else:
         product_names = product_df["name"].tolist()
 
@@ -383,7 +378,6 @@ elif menu == "POS":
 
         if len(st.session_state.cart) == 0:
             st.info("Cart is empty.")
-
         else:
             header1, header2, header3, header4, header5 = st.columns(
                 [3, 1, 2, 2, 1]
@@ -391,16 +385,12 @@ elif menu == "POS":
 
             with header1:
                 st.markdown("**Product**")
-
             with header2:
                 st.markdown("**Qty**")
-
             with header3:
                 st.markdown("**Price**")
-
             with header4:
                 st.markdown("**Total**")
-
             with header5:
                 st.markdown("**Delete**")
 
@@ -411,16 +401,12 @@ elif menu == "POS":
 
                 with col1:
                     st.write(item["product_name"])
-
                 with col2:
                     st.write(item["quantity"])
-
                 with col3:
                     st.write(f"Rp {item['price']:,.0f}")
-
                 with col4:
                     st.write(f"Rp {item['total']:,.0f}")
-
                 with col5:
                     if st.button("❌", key=f"remove_{index}"):
                         st.session_state.cart.pop(index)
@@ -437,7 +423,6 @@ elif menu == "POS":
             if st.button("Checkout All"):
                 if customer_name == "":
                     st.warning("Please input customer name.")
-
                 else:
                     for item in st.session_state.cart:
                         add_order(
@@ -450,6 +435,12 @@ elif menu == "POS":
 
                         update_stock(
                             item["product_name"],
+                            int(item["quantity"])
+                        )
+
+                        add_inventory_log(
+                            item["product_name"],
+                            "OUT",
                             int(item["quantity"])
                         )
 
@@ -510,7 +501,6 @@ elif menu == "Reports":
 
     if order_df.empty:
         st.warning("No sales data available.")
-
     else:
         total_sales = order_df["total_amount"].sum()
         total_transactions = len(order_df)
@@ -580,4 +570,27 @@ elif menu == "Reports":
             data=csv_report,
             file_name="sales_report.csv",
             mime="text/csv"
+        )
+
+elif menu == "Inventory Logs":
+
+    st.title("Inventory Movement Logs")
+
+    if inventory_log_df.empty:
+        st.info("No inventory movement logs available.")
+    else:
+        display_logs = inventory_log_df.copy()
+
+        display_logs["created_at"] = pd.to_datetime(
+            display_logs["created_at"]
+        )
+
+        display_logs = display_logs.sort_values(
+            by="created_at",
+            ascending=False
+        )
+
+        st.dataframe(
+            display_logs,
+            use_container_width=True
         )
