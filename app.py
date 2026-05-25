@@ -248,6 +248,8 @@ elif menu == "Products":
 
     st.title("Product Inventory")
 
+    st.subheader("Add New Product")
+
     with st.form("product_form"):
         name = st.text_input("Product Name")
 
@@ -274,6 +276,37 @@ elif menu == "Products":
             st.rerun()
 
     st.divider()
+
+    st.subheader("Restock Product")
+
+    if product_df.empty:
+        st.info("No products available for restock.")
+    else:
+        product_names = product_df["name"].tolist()
+
+        restock_product_name = st.selectbox(
+            "Select Product to Restock",
+            product_names
+        )
+
+        added_stock = st.number_input(
+            "Add Stock Quantity",
+            min_value=1,
+            step=1
+        )
+
+        if st.button("Restock Product"):
+            restock_product(
+                restock_product_name,
+                int(added_stock)
+            )
+
+            st.success("Product stock updated successfully!")
+            st.rerun()
+
+    st.divider()
+
+    st.subheader("Product List")
 
     display_products = product_df.copy()
 
