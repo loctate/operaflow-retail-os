@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+import io
 
 from services.customer_service import (
     get_customers,
@@ -146,7 +147,6 @@ if menu == "Dashboard":
         )
 
     else:
-
         st.info("No revenue data available.")
 
     st.divider()
@@ -173,7 +173,6 @@ if menu == "Dashboard":
             )
 
         else:
-
             st.info("No order data available.")
 
     with col2:
@@ -192,7 +191,6 @@ if menu == "Dashboard":
             )
 
         else:
-
             st.info("No status data available.")
 
     st.divider()
@@ -222,7 +220,6 @@ if menu == "Dashboard":
         )
 
     else:
-
         st.info("No product sales data available.")
 
     st.divider()
@@ -232,26 +229,30 @@ if menu == "Dashboard":
     # ====================================
     st.subheader("Low Stock Alert")
 
-    low_stock_df = product_df[
-        product_df["stock"] < 25
-    ]
+    if not product_df.empty:
 
-    if len(low_stock_df) > 0:
+        low_stock_df = product_df[
+            product_df["stock"] < 25
+        ]
 
-        st.warning(
-            f"There are {len(low_stock_df)} low stock products!"
-        )
+        if len(low_stock_df) > 0:
 
-        st.dataframe(
-            low_stock_df,
-            use_container_width=True
-        )
+            st.warning(
+                f"There are {len(low_stock_df)} low stock products!"
+            )
+
+            st.dataframe(
+                low_stock_df,
+                use_container_width=True
+            )
+
+        else:
+            st.success(
+                "Inventory stock levels are healthy."
+            )
 
     else:
-
-        st.success(
-            "Inventory stock levels are healthy."
-        )
+        st.info("No product inventory data available.")
 
     st.divider()
 
@@ -280,7 +281,6 @@ if menu == "Dashboard":
         )
 
     else:
-
         st.info("No recent orders available.")
 
 # ====================================
@@ -328,6 +328,20 @@ elif menu == "Customers":
     st.dataframe(
         customer_df,
         use_container_width=True
+    )
+
+    # ====================================
+    # EXPORT CUSTOMER CSV
+    # ====================================
+    csv_customer = customer_df.to_csv(
+        index=False
+    ).encode("utf-8")
+
+    st.download_button(
+        label="Download Customer CSV",
+        data=csv_customer,
+        file_name="customers.csv",
+        mime="text/csv"
     )
 
 # ====================================
@@ -404,6 +418,20 @@ elif menu == "Products":
         use_container_width=True
     )
 
+    # ====================================
+    # EXPORT PRODUCT CSV
+    # ====================================
+    csv_product = product_df.to_csv(
+        index=False
+    ).encode("utf-8")
+
+    st.download_button(
+        label="Download Product CSV",
+        data=csv_product,
+        file_name="products.csv",
+        mime="text/csv"
+    )
+
 # ====================================
 # ORDER PAGE
 # ====================================
@@ -413,70 +441,78 @@ elif menu == "Orders":
 
     st.subheader("Create New Order")
 
-    customer_names = customer_df["name"].tolist()
+    if customer_df.empty or product_df.empty:
 
-    product_names = product_df["name"].tolist()
-
-    with st.form("order_form"):
-
-        customer_name = st.selectbox(
-            "Select Customer",
-            customer_names
+        st.warning(
+            "Please add customers and products first."
         )
 
-        product_name = st.selectbox(
-            "Select Product",
-            product_names
-        )
+    else:
 
-        quantity = st.number_input(
-            "Quantity",
-            min_value=1,
-            step=1
-        )
+        customer_names = customer_df["name"].tolist()
 
-        status = st.selectbox(
-            "Order Status",
-            [
-                "Pending",
-                "Processing",
-                "Completed"
+        product_names = product_df["name"].tolist()
+
+        with st.form("order_form"):
+
+            customer_name = st.selectbox(
+                "Select Customer",
+                customer_names
+            )
+
+            product_name = st.selectbox(
+                "Select Product",
+                product_names
+            )
+
+            quantity = st.number_input(
+                "Quantity",
+                min_value=1,
+                step=1
+            )
+
+            status = st.selectbox(
+                "Order Status",
+                [
+                    "Pending",
+                    "Processing",
+                    "Completed"
+                ]
+            )
+
+            selected_product = product_df[
+                product_df["name"] == product_name
             ]
-        )
 
-        selected_product = product_df[
-            product_df["name"] == product_name
-        ]
+            product_price = selected_product.iloc[0]["price"]
 
-        product_price = selected_product.iloc[0]["price"]
-
-        total_amount = int(
-            quantity * product_price
-        )
-
-        st.info(
-            f"Total Amount: Rp {total_amount:,.0f}"
-        )
-
-        submitted = st.form_submit_button(
-            "Create Order"
-        )
-
-        if submitted:
-
-            add_order(
-                customer_name,
-                product_name,
-                int(quantity),
-                int(total_amount),
-                status
+            total_amount = int(
+                quantity * product_price
             )
 
-            st.success(
-                "Order created successfully!"
+            st.info(
+                f"Total Amount: Rp {total_amount:,.0f}"
             )
 
-            st.rerun()
+            submitted = st.form_submit_button(
+                "Create Order"
+            )
+
+            if submitted:
+
+                add_order(
+                    customer_name,
+                    product_name,
+                    int(quantity),
+                    int(total_amount),
+                    status
+                )
+
+                st.success(
+                    "Order created successfully!"
+                )
+
+                st.rerun()
 
     st.divider()
 
@@ -494,4 +530,18 @@ elif menu == "Orders":
     st.dataframe(
         display_order_df,
         use_container_width=True
+    )
+
+    # ====================================
+    # EXPORT ORDER CSV
+    # ====================================
+    csv_order = order_df.to_csv(
+        index=False
+    ).encode("utf-8")
+
+    st.download_button(
+        label="Download Orders CSV",
+        data=csv_order,
+        file_name="orders.csv",
+        mime="text/csv"
     )
