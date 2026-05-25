@@ -1,10 +1,22 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 
-from services.customer_service import get_customers
-from services.product_service import get_products
-from services.order_service import get_orders, add_order
+from services.customer_service import (
+    get_customers,
+    add_customer
+)
+
+from services.product_service import (
+    get_products,
+    add_product
+)
+
+from services.order_service import (
+    get_orders,
+    add_order
+)
 
 # =========================
 # PAGE CONFIG
@@ -58,6 +70,9 @@ if menu == "Dashboard":
 
     st.title("Retail Business Dashboard")
 
+    # =========================
+    # KPI CARDS
+    # =========================
     col1, col2, col3, col4, col5 = st.columns(5)
 
     with col1:
@@ -78,9 +93,33 @@ if menu == "Dashboard":
     st.divider()
 
     # =========================
-    # CHARTS
+    # REVENUE TREND
     # =========================
+    st.subheader("Revenue Trend")
 
+    revenue_trend = order_df.groupby(
+        "created_at",
+        as_index=False
+    )["total_amount"].sum()
+
+    revenue_line = px.line(
+        revenue_trend,
+        x="created_at",
+        y="total_amount",
+        markers=True,
+        title="Revenue Timeline"
+    )
+
+    st.plotly_chart(
+        revenue_line,
+        use_container_width=True
+    )
+
+    st.divider()
+
+    # =========================
+    # CHART SECTION
+    # =========================
     col1, col2 = st.columns(2)
 
     with col1:
@@ -92,7 +131,10 @@ if menu == "Dashboard":
             title="Revenue by Product"
         )
 
-        st.plotly_chart(revenue_chart, use_container_width=True)
+        st.plotly_chart(
+            revenue_chart,
+            use_container_width=True
+        )
 
     with col2:
 
@@ -102,19 +144,67 @@ if menu == "Dashboard":
             title="Order Status Distribution"
         )
 
-        st.plotly_chart(status_chart, use_container_width=True)
+        st.plotly_chart(
+            status_chart,
+            use_container_width=True
+        )
+
+    st.divider()
+
+    # =========================
+    # TOP SELLING PRODUCTS
+    # =========================
+    st.subheader("Top Selling Products")
+
+    top_products = order_df.groupby(
+        "product_name",
+        as_index=False
+    )["quantity"].sum()
+
+    top_products_chart = px.bar(
+        top_products,
+        x="product_name",
+        y="quantity",
+        title="Most Ordered Products"
+    )
+
+    st.plotly_chart(
+        top_products_chart,
+        use_container_width=True
+    )
 
     st.divider()
 
     # =========================
     # LOW STOCK ALERT
     # =========================
-
     st.subheader("Low Stock Alert")
 
-    low_stock_df = product_df[product_df["stock"] < 25]
+    low_stock_df = product_df[
+        product_df["stock"] < 25
+    ]
 
-    st.dataframe(low_stock_df, use_container_width=True)
+    st.dataframe(
+        low_stock_df,
+        use_container_width=True
+    )
+
+    st.divider()
+
+    # =========================
+    # RECENT ORDERS
+    # =========================
+    st.subheader("Recent Orders")
+
+    recent_orders = order_df.sort_values(
+        by="created_at",
+        ascending=False
+    )
+
+    st.dataframe(
+        recent_orders.head(5),
+        use_container_width=True
+    )
 
 # =========================
 # CUSTOMER PAGE
@@ -128,19 +218,29 @@ elif menu == "Customers":
     with st.form("customer_form"):
 
         name = st.text_input("Customer Name")
+
         phone = st.text_input("Phone Number")
+
         email = st.text_input("Email")
+
         city = st.text_input("City")
 
-        submitted = st.form_submit_button("Add Customer")
+        submitted = st.form_submit_button(
+            "Add Customer"
+        )
 
         if submitted:
 
-            from services.customer_service import add_customer
+            add_customer(
+                name,
+                phone,
+                email,
+                city
+            )
 
-            add_customer(name, phone, email, city)
-
-            st.success("Customer added successfully!")
+            st.success(
+                "Customer added successfully!"
+            )
 
             st.rerun()
 
@@ -148,7 +248,10 @@ elif menu == "Customers":
 
     st.subheader("Customer List")
 
-    st.dataframe(customer_df, use_container_width=True)
+    st.dataframe(
+        customer_df,
+        use_container_width=True
+    )
 
 # =========================
 # PRODUCT PAGE
@@ -187,20 +290,22 @@ elif menu == "Products":
             step=1000
         )
 
-        submitted = st.form_submit_button("Add Product")
+        submitted = st.form_submit_button(
+            "Add Product"
+        )
 
         if submitted:
-
-            from services.product_service import add_product
 
             add_product(
                 name,
                 category,
-                stock,
-                price
+                int(stock),
+                int(price)
             )
 
-            st.success("Product added successfully!")
+            st.success(
+                "Product added successfully!"
+            )
 
             st.rerun()
 
@@ -208,7 +313,10 @@ elif menu == "Products":
 
     st.subheader("Product List")
 
-    st.dataframe(product_df, use_container_width=True)
+    st.dataframe(
+        product_df,
+        use_container_width=True
+    )
 
 # =========================
 # ORDER PAGE
@@ -222,7 +330,6 @@ elif menu == "Orders":
     # =========================
     # DROPDOWN DATA
     # =========================
-
     customer_names = customer_df["name"].tolist()
 
     product_names = product_df["name"].tolist()
@@ -230,7 +337,6 @@ elif menu == "Orders":
     # =========================
     # ORDER FORM
     # =========================
-
     with st.form("order_form"):
 
         customer_name = st.selectbox(
@@ -261,18 +367,23 @@ elif menu == "Orders":
         # =========================
         # AUTO PRICE CALCULATION
         # =========================
-
         selected_product = product_df[
             product_df["name"] == product_name
         ]
 
         product_price = selected_product.iloc[0]["price"]
 
-        total_amount = int(quantity * product_price)
+        total_amount = int(
+            quantity * product_price
+        )
 
-        st.info(f"Total Amount: Rp {total_amount:,.0f}")
+        st.info(
+            f"Total Amount: Rp {total_amount:,.0f}"
+        )
 
-        submitted = st.form_submit_button("Create Order")
+        submitted = st.form_submit_button(
+            "Create Order"
+        )
 
         if submitted:
 
@@ -284,7 +395,9 @@ elif menu == "Orders":
                 status
             )
 
-            st.success("Order created successfully!")
+            st.success(
+                "Order created successfully!"
+            )
 
             st.rerun()
 
@@ -292,4 +405,7 @@ elif menu == "Orders":
 
     st.subheader("Order List")
 
-    st.dataframe(order_df, use_container_width=True)
+    st.dataframe(
+        order_df,
+        use_container_width=True
+    )
