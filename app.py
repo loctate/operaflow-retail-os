@@ -575,28 +575,30 @@ elif menu == "Products":
             lambda x: f"Rp {x:,.0f}"
         )
 
-    st.dataframe(display_products, use_container_width=True)
+        st.dataframe(display_products, use_container_width=True)
+
     inventory_rows = []
 
-for _, row in product_df.iterrows():
-    inventory_rows.append(
-        f"Product: {row.get('name', '-')}, "
-        f"Category: {row.get('category', '-')}, "
-        f"Stock: {row.get('stock', 0)}, "
-        f"Price: Rp {row.get('price', 0):,.0f}"
+    for _, row in product_df.iterrows():
+
+        inventory_rows.append(
+            f"Product: {row.get('name', '-')}, "
+            f"Category: {row.get('category', '-')}, "
+            f"Stock: {row.get('stock', 0)}, "
+            f"Price: Rp {row.get('price', 0):,.0f}"
+        )
+
+    inventory_pdf = generate_simple_report_pdf(
+        "OperaFlow Inventory Report",
+        inventory_rows
     )
 
-inventory_pdf = generate_simple_report_pdf(
-    "OperaFlow Inventory Report",
-    inventory_rows
-)
-
-st.download_button(
-    label="Download Inventory Report PDF",
-    data=inventory_pdf,
-    file_name="inventory_report.pdf",
-    mime="application/pdf"
-)
+    st.download_button(
+        label="Download Inventory Report PDF",
+        data=inventory_pdf,
+        file_name="inventory_report.pdf",
+        mime="application/pdf"
+    )
 
 
 elif menu == "Orders":
@@ -822,17 +824,28 @@ elif menu == "Reports":
             f"Total: Rp {row.get('total_amount', 0):,.0f}"
     )
 
+        s        sales_rows = []
+
+        for _, row in order_df.iterrows():
+
+            sales_rows.append(
+                f"Customer: {row.get('customer_name', '-')}, "
+                f"Product: {row.get('product_name', '-')}, "
+                f"Qty: {row.get('quantity', 0)}, "
+                f"Total: Rp {row.get('total_amount', 0):,.0f}"
+            )
+
         sales_pdf = generate_simple_report_pdf(
-       "OperaFlow Sales Report",
-       sales_rows
-    )
+            "OperaFlow Sales Report",
+            sales_rows
+        )
 
         st.download_button(
-        label="Download Sales Report PDF",
-        data=sales_pdf,
-        file_name="sales_report.pdf",
-        mime="application/pdf"
-    )
+            label="Download Sales Report PDF",
+            data=sales_pdf,
+            file_name="sales_report.pdf",
+            mime="application/pdf"
+        )
 
 elif menu == "Inventory Logs":
 
@@ -929,28 +942,30 @@ elif menu == "Expenses":
             lambda x: f"Rp {x:,.0f}"
         )
 
-    st.dataframe(display_expense_df, use_container_width=True)
+        st.dataframe(display_expense_df, use_container_width=True)
+
     expense_rows = []
 
-for _, row in expense_df.iterrows():
-    expense_rows.append(
-        f"Expense: {row.get('expense_name', '-')}, "
-        f"Category: {row.get('category', '-')}, "
-        f"Amount: Rp {row.get('amount', 0):,.0f}, "
-        f"Description: {row.get('description', '-')}"
+    for _, row in expense_df.iterrows():
+
+        expense_rows.append(
+            f"Expense: {row.get('expense_name', '-')}, "
+            f"Category: {row.get('category', '-')}, "
+            f"Amount: Rp {row.get('amount', 0):,.0f}, "
+            f"Description: {row.get('description', '-')}"
+        )
+
+    expense_pdf = generate_simple_report_pdf(
+        "OperaFlow Expense Report",
+        expense_rows
     )
 
-expense_pdf = generate_simple_report_pdf(
-    "OperaFlow Expense Report",
-    expense_rows
-)
-
-st.download_button(
-    label="Download Expense Report PDF",
-    data=expense_pdf,
-    file_name="expense_report.pdf",
-    mime="application/pdf"
-)
+    st.download_button(
+        label="Download Expense Report PDF",
+        data=expense_pdf,
+        file_name="expense_report.pdf",
+        mime="application/pdf"
+    )
 
 
 elif menu == "Profit Dashboard":
