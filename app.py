@@ -380,7 +380,8 @@ if menu == "Dashboard":
             Welcome back,
             {st.session_state.current_user}.
 
-            Monitor your retail business performance in real time.
+            Monitor your retail business
+            performance in real time.
         </p>
 
         </div>
