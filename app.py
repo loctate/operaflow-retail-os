@@ -192,6 +192,47 @@ def generate_receipt_pdf(trx):
     return bytes(pdf_output)
 
 
+# ==========================================
+# GENERIC REPORT PDF
+# ==========================================
+
+def generate_simple_report_pdf(title, rows):
+
+    pdf = FPDF()
+
+    pdf.add_page()
+
+    pdf.set_font("Arial", "B", 16)
+
+    pdf.cell(
+        0,
+        10,
+        title,
+        ln=True,
+        align="C"
+    )
+
+    pdf.ln(10)
+
+    pdf.set_font("Arial", "", 11)
+
+    for row in rows:
+
+        pdf.multi_cell(
+            0,
+            8,
+            row
+        )
+
+    pdf_output = pdf.output(dest="S")
+
+    if isinstance(pdf_output, str):
+
+        return pdf_output.encode("latin-1")
+
+    return bytes(pdf_output)
+
+
 # ====================================
 # LOGIN PAGE
 # ====================================
@@ -535,6 +576,27 @@ elif menu == "Products":
         )
 
     st.dataframe(display_products, use_container_width=True)
+    inventory_rows = []
+
+for _, row in product_df.iterrows():
+    inventory_rows.append(
+        f"Product: {row.get('name', '-')}, "
+        f"Category: {row.get('category', '-')}, "
+        f"Stock: {row.get('stock', 0)}, "
+        f"Price: Rp {row.get('price', 0):,.0f}"
+    )
+
+inventory_pdf = generate_simple_report_pdf(
+    "OperaFlow Inventory Report",
+    inventory_rows
+)
+
+st.download_button(
+    label="Download Inventory Report PDF",
+    data=inventory_pdf,
+    file_name="inventory_report.pdf",
+    mime="application/pdf"
+)
 
 
 elif menu == "Orders":
@@ -749,7 +811,28 @@ elif menu == "Reports":
             file_name="sales_report.csv",
             mime="text/csv"
         )
+        sales_rows = []
 
+        for _, row in order_df.iterrows():
+
+            sales_rows.append(
+            f"Customer: {row.get('customer_name', '-')}, "
+            f"Product: {row.get('product_name', '-')}, "
+            f"Qty: {row.get('quantity', 0)}, "
+            f"Total: Rp {row.get('total_amount', 0):,.0f}"
+    )
+
+        sales_pdf = generate_simple_report_pdf(
+       "OperaFlow Sales Report",
+       sales_rows
+    )
+
+        st.download_button(
+        label="Download Sales Report PDF",
+        data=sales_pdf,
+        file_name="sales_report.pdf",
+        mime="application/pdf"
+    )
 
 elif menu == "Inventory Logs":
 
@@ -847,6 +930,27 @@ elif menu == "Expenses":
         )
 
     st.dataframe(display_expense_df, use_container_width=True)
+    expense_rows = []
+
+for _, row in expense_df.iterrows():
+    expense_rows.append(
+        f"Expense: {row.get('expense_name', '-')}, "
+        f"Category: {row.get('category', '-')}, "
+        f"Amount: Rp {row.get('amount', 0):,.0f}, "
+        f"Description: {row.get('description', '-')}"
+    )
+
+expense_pdf = generate_simple_report_pdf(
+    "OperaFlow Expense Report",
+    expense_rows
+)
+
+st.download_button(
+    label="Download Expense Report PDF",
+    data=expense_pdf,
+    file_name="expense_report.pdf",
+    mime="application/pdf"
+)
 
 
 elif menu == "Profit Dashboard":
