@@ -200,47 +200,21 @@ def generate_receipt_pdf(trx):
 
     return bytes(pdf_output)
 
-
 if not st.session_state.logged_in:
 
-    st.markdown(
-    f"""
-    <div style="
-        padding:30px;
-        border-radius:24px;
-        background:
-        linear-gradient(
-            135deg,
-            rgba(59,130,246,0.25),
-            rgba(168,85,247,0.18)
-        );
+    st.markdown("""
+    <div class="login-container">
+        <div class="login-box">
 
-        border:1px solid rgba(255,255,255,0.08);
+            <div class="login-title">
+                🚀 OperaFlow
+            </div>
 
-        margin-bottom:25px;
-    ">
+            <div class="login-subtitle">
+                AI-Powered Retail Operating System
+            </div>
 
-    <h1 style="
-        margin-bottom:10px;
-        font-size:42px;
-    ">
-        🚀 OperaFlow Enterprise Dashboard
-    </h1>
-
-    <p style="
-        color:#cbd5e1;
-        font-size:18px;
-    ">
-        Welcome back,
-        {st.session_state.current_user}.
-
-        Monitor your retail business performance in real time.
-    </p>
-
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+    """, unsafe_allow_html=True)
 
     if "login_error" not in st.session_state:
         st.session_state.login_error = False
