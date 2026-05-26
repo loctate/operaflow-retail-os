@@ -115,6 +115,36 @@ div[data-testid="metric-container"]:hover {
     margin-top: 20px;
     font-size: 14px;
 }
+.pos-card {
+    background: rgba(255,255,255,0.04);
+    padding: 24px;
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.08);
+    margin-bottom: 20px;
+}
+
+.cart-row {
+    background: rgba(255,255,255,0.03);
+    padding: 12px;
+    border-radius: 12px;
+    margin-bottom: 8px;
+}
+
+@media (max-width: 768px) {
+    div[data-testid="column"] {
+        width: 100% !important;
+        flex: 1 1 100% !important;
+    }
+
+    .login-box {
+        width: 90%;
+        padding: 28px;
+    }
+
+    .login-title {
+        font-size: 32px;
+    }
+}            
 </style>
 """, unsafe_allow_html=True)
 
@@ -469,8 +499,17 @@ elif menu == "Orders":
 
 elif menu == "POS":
 
-    st.title("Point of Sales")
-    st.subheader("Cashier Mode")
+    st.markdown(
+        """
+        <div class="pos-card">
+            <h1>🛒 Point of Sales</h1>
+            <p style="color:#cbd5e1;">
+                Fast checkout experience for cashier and retail operations.
+            </p>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
     if product_df.empty:
         st.warning("No products available.")
