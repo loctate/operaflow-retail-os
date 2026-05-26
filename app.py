@@ -11,6 +11,7 @@ from services.order_service import get_orders, add_order
 from services.inventory_log_service import add_inventory_log, get_inventory_logs
 from services.supplier_service import get_suppliers, add_supplier
 from services.expense_service import get_expenses, add_expense
+from services.purchase_order_service import get_purchase_orders, add_purchase_order
 
 USERS = {
     "admin": {"password": "admin123", "role": "admin"},
@@ -79,15 +80,12 @@ def generate_receipt_pdf(trx):
     pdf.cell(0, 10, f"Customer: {trx.get('customer_name', '-')}", ln=True)
     pdf.cell(0, 10, f"Total Items: {trx.get('total_items', 1)}", ln=True)
     pdf.cell(0, 10, f"Total Payment: Rp {trx.get('total_price', 0):,.0f}", ln=True)
-
     pdf.ln(10)
     pdf.cell(0, 10, "Thank you for shopping!", ln=True)
 
     pdf_output = pdf.output(dest="S")
-
     if isinstance(pdf_output, str):
         return pdf_output.encode("latin-1")
-
     return bytes(pdf_output)
 
 
@@ -119,6 +117,7 @@ orders = get_orders()
 inventory_logs = get_inventory_logs()
 suppliers = get_suppliers()
 expenses = get_expenses()
+purchase_orders = get_purchase_orders()
 
 customer_df = pd.DataFrame(customers)
 product_df = pd.DataFrame(products)
@@ -126,6 +125,7 @@ order_df = pd.DataFrame(orders)
 inventory_log_df = pd.DataFrame(inventory_logs)
 supplier_df = pd.DataFrame(suppliers)
 expense_df = pd.DataFrame(expenses)
+purchase_order_df = pd.DataFrame(purchase_orders)
 
 total_customers = len(customer_df)
 total_products = len(product_df)
@@ -143,9 +143,7 @@ st.sidebar.markdown("""
 """)
 
 st.sidebar.divider()
-st.sidebar.success(
-    f"Logged in as: {st.session_state.current_user} ({st.session_state.role})"
-)
+st.sidebar.success(f"Logged in as: {st.session_state.current_user} ({st.session_state.role})")
 st.sidebar.info("Cloud Retail Management System")
 
 if st.sidebar.button("Logout"):
@@ -166,6 +164,7 @@ if st.session_state.role == "admin":
         "Suppliers",
         "Expenses",
         "Profit Dashboard",
+        "Purchase Orders",
         "AI Insights"
     ]
 elif st.session_state.role == "cashier":
@@ -205,10 +204,7 @@ if menu == "Dashboard":
         order_df["created_at"] = pd.to_datetime(order_df["created_at"])
         order_df["order_date"] = order_df["created_at"].dt.date
 
-        revenue_trend = order_df.groupby(
-            "order_date",
-            as_index=False
-        )["total_amount"].sum()
+        revenue_trend = order_df.groupby("order_date", as_index=False)["total_amount"].sum()
 
         revenue_chart = px.line(
             revenue_trend,
@@ -290,25 +286,14 @@ elif menu == "Products":
     else:
         product_names = product_df["name"].tolist()
 
-        restock_product_name = st.selectbox(
-            "Select Product to Restock",
-            product_names
-        )
+        restock_product_name = st.selectbox("Select Product to Restock", product_names)
 
-        added_stock = st.number_input(
-            "Add Stock Quantity",
-            min_value=1,
-            step=1
-        )
+        added_stock = st.number_input("Add Stock Quantity", min_value=1, step=1)
 
         if st.button("Restock Product"):
             restock_product(restock_product_name, int(added_stock))
 
-            add_inventory_log(
-                restock_product_name,
-                "IN",
-                int(added_stock)
-            )
+            add_inventory_log(restock_product_name, "IN", int(added_stock))
 
             st.success("Product stock updated successfully!")
             st.rerun()
@@ -429,16 +414,8 @@ elif menu == "POS":
                             "Completed"
                         )
 
-                        update_stock(
-                            item["product_name"],
-                            int(item["quantity"])
-                        )
-
-                        add_inventory_log(
-                            item["product_name"],
-                            "OUT",
-                            int(item["quantity"])
-                        )
+                        update_stock(item["product_name"], int(item["quantity"]))
+                        add_inventory_log(item["product_name"], "OUT", int(item["quantity"]))
 
                     st.session_state.last_transaction = {
                         "customer_name": customer_name,
@@ -548,14 +525,9 @@ elif menu == "Inventory Logs":
     else:
         display_logs = inventory_log_df.copy()
 
-        display_logs["created_at"] = pd.to_datetime(
-            display_logs["created_at"]
-        )
+        display_logs["created_at"] = pd.to_datetime(display_logs["created_at"])
 
-        display_logs = display_logs.sort_values(
-            by="created_at",
-            ascending=False
-        )
+        display_logs = display_logs.sort_values(by="created_at", ascending=False)
 
         st.dataframe(display_logs, use_container_width=True)
 
@@ -588,13 +560,7 @@ elif menu == "Suppliers":
         submitted = st.form_submit_button("Add Supplier")
 
         if submitted:
-            add_supplier(
-                supplier_name,
-                phone,
-                email,
-                city,
-                category
-            )
+            add_supplier(supplier_name, phone, email, city, category)
 
             st.success("Supplier added successfully!")
             st.rerun()
@@ -634,12 +600,7 @@ elif menu == "Expenses":
         submitted = st.form_submit_button("Add Expense")
 
         if submitted:
-            add_expense(
-                expense_name,
-                category,
-                int(amount),
-                description
-            )
+            add_expense(expense_name, category, int(amount), description)
 
             st.success("Expense added successfully!")
             st.rerun()
@@ -695,6 +656,60 @@ elif menu == "Profit Dashboard":
         st.info("No expense data available.")
 
 
+elif menu == "Purchase Orders":
+
+    st.title("Purchase Order System")
+
+    st.subheader("Create Purchase Order")
+
+    if supplier_df.empty or product_df.empty:
+        st.warning("Please add suppliers and products first.")
+    else:
+        supplier_names = supplier_df["supplier_name"].tolist()
+        product_names = product_df["name"].tolist()
+
+        with st.form("purchase_order_form"):
+            supplier_name = st.selectbox("Select Supplier", supplier_names)
+            product_name = st.selectbox("Select Product", product_names)
+
+            quantity = st.number_input("Quantity", min_value=1, step=1)
+
+            total_cost = st.number_input("Total Cost", min_value=0, step=1000)
+
+            status = st.selectbox("Status", ["Pending", "Received"])
+
+            submitted = st.form_submit_button("Create Purchase Order")
+
+            if submitted:
+                add_purchase_order(
+                    supplier_name,
+                    product_name,
+                    int(quantity),
+                    int(total_cost),
+                    status
+                )
+
+                if status == "Received":
+                    restock_product(product_name, int(quantity))
+                    add_inventory_log(product_name, "IN", int(quantity))
+
+                st.success("Purchase order created successfully!")
+                st.rerun()
+
+    st.divider()
+
+    st.subheader("Purchase Order List")
+
+    display_po_df = purchase_order_df.copy()
+
+    if not display_po_df.empty:
+        display_po_df["total_cost"] = display_po_df["total_cost"].apply(
+            lambda x: f"Rp {x:,.0f}"
+        )
+
+    st.dataframe(display_po_df, use_container_width=True)
+
+
 elif menu == "AI Insights":
 
     st.title("AI Business Insights")
@@ -705,9 +720,7 @@ elif menu == "AI Insights":
         low_stock_products = product_df[product_df["stock"] < 20]
 
         if len(low_stock_products) > 0:
-            st.warning(
-                "These products are running low and should be restocked soon."
-            )
+            st.warning("These products are running low and should be restocked soon.")
             st.dataframe(low_stock_products, use_container_width=True)
         else:
             st.success("All products currently have healthy stock levels.")
@@ -722,10 +735,7 @@ elif menu == "AI Insights":
             as_index=False
         )["quantity"].sum()
 
-        best_seller = best_seller.sort_values(
-            by="quantity",
-            ascending=False
-        )
+        best_seller = best_seller.sort_values(by="quantity", ascending=False)
 
         st.dataframe(best_seller, use_container_width=True)
 
