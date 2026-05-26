@@ -208,12 +208,16 @@ if not st.session_state.logged_in:
             <div class="login-subtitle">
                 AI-Powered Retail Operating System
             </div>
+
     """, unsafe_allow_html=True)
 
     if "login_error" not in st.session_state:
         st.session_state.login_error = False
 
-    st.text_input("Username", key="username")
+    st.text_input(
+        "Username",
+        key="username"
+    )
 
     st.text_input(
         "Password",
@@ -222,13 +226,17 @@ if not st.session_state.logged_in:
         on_change=login
     )
 
-    st.button("Login", on_click=login)
+    st.button(
+        "Login",
+        on_click=login
+    )
 
     if st.session_state.login_error:
         st.error("Invalid username or password")
 
     st.markdown("""
             <div class="demo-box">
+
                 <b>Demo Accounts</b><br><br>
 
                 Admin:<br>
@@ -238,6 +246,7 @@ if not st.session_state.logged_in:
                 Cashier:<br>
                 username: cashier<br>
                 password: cashier123
+
             </div>
 
         </div>
