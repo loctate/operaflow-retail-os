@@ -202,18 +202,23 @@ def generate_receipt_pdf(trx):
 
 if not st.session_state.logged_in:
 
-    st.markdown("""
-    <div class="login-container">
-        <div class="login-box">
+        st.markdown("""
+            <div class="demo-box">
 
-            <div class="login-title">
-                🚀 OperaFlow
+                <b>Demo Accounts</b><br><br>
+
+                Admin:<br>
+                username: admin<br>
+                password: admin123<br><br>
+
+                Cashier:<br>
+                username: cashier<br>
+                password: cashier123
+
             </div>
 
-            <div class="login-subtitle">
-                AI-Powered Retail Operating System
-            </div>
-
+        </div>
+    </div>
     """, unsafe_allow_html=True)
 
     if "login_error" not in st.session_state:
