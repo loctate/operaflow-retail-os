@@ -18,18 +18,30 @@ USERS = {
     "cashier": {"password": "cashier123", "role": "cashier"}
 }
 
-st.set_page_config(page_title="OperaFlow", page_icon="🚀", layout="wide")
+st.set_page_config(
+    page_title="OperaFlow",
+    page_icon="🚀",
+    layout="wide"
+)
 
 st.markdown("""
 <style>
-.stApp { background-color: #0f1117; color: white; }
-section[data-testid="stSidebar"] { background-color: #151924; }
+.stApp {
+    background-color: #0f1117;
+    color: white;
+}
+
+section[data-testid="stSidebar"] {
+    background-color: #151924;
+}
+
 div[data-testid="metric-container"] {
     background-color: #1c2230;
     border: 1px solid #2d3748;
     padding: 15px;
     border-radius: 12px;
 }
+
 .stButton > button {
     width: 100%;
     border-radius: 10px;
@@ -39,18 +51,63 @@ div[data-testid="metric-container"] {
     color: white;
     font-weight: bold;
 }
-.stButton > button:hover { background-color: #2563eb; }
+
+.stButton > button:hover {
+    background-color: #2563eb;
+}
+
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 90vh;
+}
+
+.login-box {
+    background: rgba(255,255,255,0.05);
+    padding: 40px;
+    border-radius: 20px;
+    width: 420px;
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+}
+
+.login-title {
+    font-size: 42px;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.login-subtitle {
+    text-align: center;
+    color: #9ca3af;
+    margin-bottom: 30px;
+}
+
+.demo-box {
+    background-color: rgba(59,130,246,0.15);
+    padding: 15px;
+    border-radius: 12px;
+    margin-top: 20px;
+    font-size: 14px;
+}
 </style>
 """, unsafe_allow_html=True)
 
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
+
 if "cart" not in st.session_state:
     st.session_state.cart = []
+
 if "last_transaction" not in st.session_state:
     st.session_state.last_transaction = {}
+
 if "role" not in st.session_state:
     st.session_state.role = None
+
 if "current_user" not in st.session_state:
     st.session_state.current_user = None
 
@@ -80,89 +137,35 @@ def generate_receipt_pdf(trx):
     pdf.cell(0, 10, f"Customer: {trx.get('customer_name', '-')}", ln=True)
     pdf.cell(0, 10, f"Total Items: {trx.get('total_items', 1)}", ln=True)
     pdf.cell(0, 10, f"Total Payment: Rp {trx.get('total_price', 0):,.0f}", ln=True)
+
     pdf.ln(10)
     pdf.cell(0, 10, "Thank you for shopping!", ln=True)
 
     pdf_output = pdf.output(dest="S")
+
     if isinstance(pdf_output, str):
         return pdf_output.encode("latin-1")
+
     return bytes(pdf_output)
 
 
 if not st.session_state.logged_in:
 
-    st.markdown(
-        """
-        <style>
-
-        .login-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 90vh;
-        }
-
-        .login-box {
-            background: rgba(255,255,255,0.05);
-            padding: 40px;
-            border-radius: 20px;
-            width: 420px;
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255,255,255,0.1);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-        }
-
-        .login-title {
-            font-size: 42px;
-            font-weight: bold;
-            text-align: center;
-            margin-bottom: 10px;
-        }
-
-        .login-subtitle {
-            text-align: center;
-            color: #9ca3af;
-            margin-bottom: 30px;
-        }
-
-        .demo-box {
-            background-color: rgba(59,130,246,0.15);
-            padding: 15px;
-            border-radius: 12px;
-            margin-top: 20px;
-            font-size: 14px;
-        }
-
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
-
-    st.markdown(
-        """
-        <div class="login-container">
-
-            <div class="login-box">
-
-                <div class="login-title">
-                    🚀 OperaFlow
-                </div>
-
-                <div class="login-subtitle">
-                    AI-Powered Retail Operating System
-                </div>
-
-        """,
-        unsafe_allow_html=True
-    )
+    st.markdown("""
+    <div class="login-container">
+        <div class="login-box">
+            <div class="login-title">
+                🚀 OperaFlow
+            </div>
+            <div class="login-subtitle">
+                AI-Powered Retail Operating System
+            </div>
+    """, unsafe_allow_html=True)
 
     if "login_error" not in st.session_state:
         st.session_state.login_error = False
 
-    st.text_input(
-        "Username",
-        key="username"
-    )
+    st.text_input("Username", key="username")
 
     st.text_input(
         "Password",
@@ -171,35 +174,28 @@ if not st.session_state.logged_in:
         on_change=login
     )
 
-    st.button(
-        "Login",
-        on_click=login
-    )
+    st.button("Login", on_click=login)
 
     if st.session_state.login_error:
         st.error("Invalid username or password")
 
-    st.markdown(
-        """
-        <div class="demo-box">
-
-        <b>Demo Accounts</b><br><br>
-
-        Admin:<br>
-        username: admin<br>
-        password: admin123<br><br>
-
-        Cashier:<br>
-        username: cashier<br>
-        password: cashier123
-
+    st.markdown("""
+            <div class="demo-box">
+                <b>Demo Accounts</b><br><br>
+                Admin:<br>
+                username: admin<br>
+                password: admin123<br><br>
+                Cashier:<br>
+                username: cashier<br>
+                password: cashier123
+            </div>
         </div>
+    </div>
+    """, unsafe_allow_html=True)
 
-        </div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    if st.session_state.logged_in:
+        st.success("Login successful!")
+        st.rerun()
 
     st.stop()
 
@@ -236,7 +232,9 @@ st.sidebar.markdown("""
 """)
 
 st.sidebar.divider()
-st.sidebar.success(f"Logged in as: {st.session_state.current_user} ({st.session_state.role})")
+st.sidebar.success(
+    f"Logged in as: {st.session_state.current_user} ({st.session_state.role})"
+)
 st.sidebar.info("Cloud Retail Management System")
 
 if st.sidebar.button("Logout"):
@@ -297,7 +295,10 @@ if menu == "Dashboard":
         order_df["created_at"] = pd.to_datetime(order_df["created_at"])
         order_df["order_date"] = order_df["created_at"].dt.date
 
-        revenue_trend = order_df.groupby("order_date", as_index=False)["total_amount"].sum()
+        revenue_trend = order_df.groupby(
+            "order_date",
+            as_index=False
+        )["total_amount"].sum()
 
         revenue_chart = px.line(
             revenue_trend,
@@ -378,16 +379,12 @@ elif menu == "Products":
         st.info("No products available for restock.")
     else:
         product_names = product_df["name"].tolist()
-
         restock_product_name = st.selectbox("Select Product to Restock", product_names)
-
         added_stock = st.number_input("Add Stock Quantity", min_value=1, step=1)
 
         if st.button("Restock Product"):
             restock_product(restock_product_name, int(added_stock))
-
             add_inventory_log(restock_product_name, "IN", int(added_stock))
-
             st.success("Product stock updated successfully!")
             st.rerun()
 
@@ -617,9 +614,7 @@ elif menu == "Inventory Logs":
         st.info("No inventory movement logs available.")
     else:
         display_logs = inventory_log_df.copy()
-
         display_logs["created_at"] = pd.to_datetime(display_logs["created_at"])
-
         display_logs = display_logs.sort_values(by="created_at", ascending=False)
 
         st.dataframe(display_logs, use_container_width=True)
@@ -687,7 +682,6 @@ elif menu == "Expenses":
         )
 
         amount = st.number_input("Amount", min_value=0, step=1000)
-
         description = st.text_area("Description")
 
         submitted = st.form_submit_button("Add Expense")
@@ -849,7 +843,6 @@ elif menu == "AI Insights":
 
     if not order_df.empty and not product_df.empty:
         sold_products = order_df["product_name"].unique()
-
         slow_products = product_df[
             ~product_df["name"].isin(sold_products)
         ]
