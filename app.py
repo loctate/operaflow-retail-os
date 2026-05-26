@@ -818,13 +818,11 @@ elif menu == "Reports":
         for _, row in order_df.iterrows():
 
             sales_rows.append(
-            f"Customer: {row.get('customer_name', '-')}, "
-            f"Product: {row.get('product_name', '-')}, "
-            f"Qty: {row.get('quantity', 0)}, "
-            f"Total: Rp {row.get('total_amount', 0):,.0f}"
-    )
-
-        s        sales_rows = []
+                f"Customer: {row.get('customer_name', '-')}, "
+                f"Product: {row.get('product_name', '-')}, "
+                f"Qty: {row.get('quantity', 0)}, "
+                f"Total: Rp {row.get('total_amount', 0):,.0f}"
+            )
 
         for _, row in order_df.iterrows():
 
