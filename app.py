@@ -197,27 +197,28 @@ def generate_receipt_pdf(trx):
 # ====================================
 if not st.session_state.logged_in:
 
-    st.markdown("""
-    <div class="login-container">
-        <div class="login-box">
+    st.title("🚀 OperaFlow")
+    st.subheader("AI-Powered Retail Operating System")
+    st.caption("Cloud Retail Management Dashboard")
 
-            <div class="login-title">
-                🚀 OperaFlow
-            </div>
+    st.info(
+        """
+        Demo Accounts
 
-            <div class="login-subtitle">
-                AI-Powered Retail Operating System
-            </div>
+        Admin:
+        username: admin
+        password: admin123
 
-    """, unsafe_allow_html=True)
+        Cashier:
+        username: cashier
+        password: cashier123
+        """
+    )
 
     if "login_error" not in st.session_state:
         st.session_state.login_error = False
 
-    st.text_input(
-        "Username",
-        key="username"
-    )
+    st.text_input("Username", key="username")
 
     st.text_input(
         "Password",
@@ -226,32 +227,10 @@ if not st.session_state.logged_in:
         on_change=login
     )
 
-    st.button(
-        "Login",
-        on_click=login
-    )
+    st.button("Login", on_click=login)
 
     if st.session_state.login_error:
         st.error("Invalid username or password")
-
-    st.markdown("""
-            <div class="demo-box">
-
-                <b>Demo Accounts</b><br><br>
-
-                Admin:<br>
-                username: admin<br>
-                password: admin123<br><br>
-
-                Cashier:<br>
-                username: cashier<br>
-                password: cashier123
-
-            </div>
-
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
 
     if st.session_state.logged_in:
         st.success("Login successful!")
