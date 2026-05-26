@@ -1061,6 +1061,67 @@ elif menu == "AI Insights":
 
     st.title("AI Business Insights")
 
+    st.subheader("AI Smart Recommendations")
+
+recommendations = []
+
+# Low stock recommendation
+if not product_df.empty:
+
+    critical_stock = product_df[
+        product_df["stock"] < 10
+    ]
+
+    for _, row in critical_stock.iterrows():
+
+        recommendations.append(
+            f"⚠️ Restock immediately: {row['name']} "
+            f"(stock left: {row['stock']})"
+        )
+
+# Revenue insight
+if total_revenue > total_expenses:
+
+    recommendations.append(
+        "📈 Business is currently profitable."
+    )
+
+else:
+
+    recommendations.append(
+        "⚠️ Expenses are exceeding revenue."
+    )
+
+# Top product insight
+if not order_df.empty:
+
+    top_product = order_df.groupby(
+        "product_name"
+    )["quantity"].sum().idxmax()
+
+    recommendations.append(
+        f"🔥 Top selling product: {top_product}"
+    )
+
+# Expense insight
+if total_expenses > (total_revenue * 0.7):
+
+    recommendations.append(
+        "💸 Expenses are above 70% of revenue."
+    )
+
+if len(recommendations) == 0:
+
+    st.success(
+        "AI detected healthy business performance."
+    )
+
+else:
+
+    for rec in recommendations:
+
+        st.info(rec)
+
     st.subheader("Smart Restock Recommendation")
 
     if not product_df.empty:
