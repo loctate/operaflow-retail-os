@@ -111,6 +111,36 @@ Deployed with:
 
 # 📸 Screenshots
 
+# 📸 Screenshots
+
+## 🔐 Login Page
+
+![Login](screenshots/login.png)
+
+---
+
+## 📊 Executive Dashboard
+
+![Dashboard](screenshots/dashboard.png)
+
+---
+
+## 🛒 Point of Sales
+
+![POS](screenshots/pos.png)
+
+---
+
+## 🤖 AI Insights
+
+![AI](screenshots/ai.png)
+
+---
+
+## 💰 Profit Dashboard
+
+![Profit](screenshots/profit.png)
+
 ## Login Page
 Modern enterprise-style login interface.
 
@@ -141,10 +171,13 @@ AI-powered recommendations for retail operations.
 Built by Bonar Sulaiman
 
 LinkedIn:
-https://linkedin.com
+https://www.linkedin.com/in/bonarsulaiman
 
 GitHub:
-https://github.com
+https://github.com/loctate/operaflow-retail-os
+
+Streamlit:
+https://operaflow-retail-os-m2eqkdiu4bt4tvdrk5eye3.streamlit.app/
 
 ---
 
