@@ -90,23 +90,116 @@ def generate_receipt_pdf(trx):
 
 
 if not st.session_state.logged_in:
-    st.title("🚀 OperaFlow Login")
-    st.caption("Cloud Retail Management Dashboard")
-    st.subheader("Retail Management System")
+
+    st.markdown(
+        """
+        <style>
+
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 90vh;
+        }
+
+        .login-box {
+            background: rgba(255,255,255,0.05);
+            padding: 40px;
+            border-radius: 20px;
+            width: 420px;
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+
+        .login-title {
+            font-size: 42px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .login-subtitle {
+            text-align: center;
+            color: #9ca3af;
+            margin-bottom: 30px;
+        }
+
+        .demo-box {
+            background-color: rgba(59,130,246,0.15);
+            padding: 15px;
+            border-radius: 12px;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+
+    st.markdown(
+        """
+        <div class="login-container">
+
+            <div class="login-box">
+
+                <div class="login-title">
+                    🚀 OperaFlow
+                </div>
+
+                <div class="login-subtitle">
+                    AI-Powered Retail Operating System
+                </div>
+
+        """,
+        unsafe_allow_html=True
+    )
 
     if "login_error" not in st.session_state:
         st.session_state.login_error = False
 
-    st.text_input("Username", key="username")
-    st.text_input("Password", type="password", key="password", on_change=login)
-    st.button("Login", on_click=login)
+    st.text_input(
+        "Username",
+        key="username"
+    )
+
+    st.text_input(
+        "Password",
+        type="password",
+        key="password",
+        on_change=login
+    )
+
+    st.button(
+        "Login",
+        on_click=login
+    )
 
     if st.session_state.login_error:
         st.error("Invalid username or password")
 
-    if st.session_state.logged_in:
-        st.success("Login successful!")
-        st.rerun()
+    st.markdown(
+        """
+        <div class="demo-box">
+
+        <b>Demo Accounts</b><br><br>
+
+        Admin:<br>
+        username: admin<br>
+        password: admin123<br><br>
+
+        Cashier:<br>
+        username: cashier<br>
+        password: cashier123
+
+        </div>
+
+        </div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
     st.stop()
 
