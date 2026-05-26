@@ -203,12 +203,11 @@ def generate_receipt_pdf(trx):
 
 if not st.session_state.logged_in:
 
-st.markdown(
+    st.markdown(
     f"""
     <div style="
         padding:30px;
         border-radius:24px;
-
         background:
         linear-gradient(
             135deg,
@@ -349,12 +348,45 @@ menu = st.sidebar.radio("Navigation", menu_options)
 
 if menu == "Dashboard":
 
-    st.markdown("""
-    # 🚀 OperaFlow Dashboard
+    st.markdown(
+        f"""
+        <div style="
+            padding:30px;
+            border-radius:24px;
 
-    Welcome back, Admin.  
-    Here's your retail business overview today.
-    """)
+            background:
+            linear-gradient(
+                135deg,
+                rgba(59,130,246,0.25),
+                rgba(168,85,247,0.18)
+            );
+
+            border:1px solid rgba(255,255,255,0.08);
+
+            margin-bottom:25px;
+        ">
+
+        <h1 style="
+            margin-bottom:10px;
+            font-size:42px;
+        ">
+            🚀 OperaFlow Enterprise Dashboard
+        </h1>
+
+        <p style="
+            color:#cbd5e1;
+            font-size:18px;
+        ">
+            Welcome back,
+            {st.session_state.current_user}.
+
+            Monitor your retail business performance in real time.
+        </p>
+
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
     col1, col2, col3, col4, col5 = st.columns(5)
 
