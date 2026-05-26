@@ -203,11 +203,12 @@ def generate_receipt_pdf(trx):
 
 if not st.session_state.logged_in:
 
-    st.markdown(
+st.markdown(
     f"""
     <div style="
         padding:30px;
         border-radius:24px;
+
         background:
         linear-gradient(
             135deg,
