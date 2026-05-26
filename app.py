@@ -391,88 +391,65 @@ if menu == "Dashboard":
     else:
         st.info("No revenue data available.")
 
-st.divider()
-
-st.subheader("Business Financial Overview")
-
-financial_df = pd.DataFrame({
-    "Category": [
-        "Revenue",
-        "Expenses",
-        "Profit"
-    ],
-    "Amount": [
-        total_revenue,
-        total_expenses,
-        net_profit
-    ]
-})
-
-financial_chart = px.bar(
-    financial_df,
-    x="Category",
-    y="Amount",
-    title="Revenue vs Expenses vs Profit"
-)
-
-st.plotly_chart(
-    financial_chart,
-    use_container_width=True
-)
-
-profit_margin = 0
-
-if total_revenue > 0:
-    profit_margin = (
-        (net_profit / total_revenue) * 100
-    )
-
-col1, col2 = st.columns(2)
-
-with col1:
-    st.metric(
-        "📈 Net Profit",
-        f"Rp {net_profit:,.0f}"
-    )
-
-with col2:
-    st.metric(
-        "💹 Profit Margin",
-        f"{profit_margin:.1f}%"
-    )
-
-st.divider()
-
-st.subheader("Top Selling Products")
-
-if not order_df.empty:
-
-    top_products = order_df.groupby(
-        "product_name",
-        as_index=False
-    )["quantity"].sum()
-
-    top_products = top_products.sort_values(
-        by="quantity",
-        ascending=False
-    )
-
-    top_chart = px.pie(
-        top_products,
-        names="product_name",
-        values="quantity",
-        title="Product Sales Distribution"
-    )
-
-    st.plotly_chart(
-        top_chart,
-        use_container_width=True
-    )
-
-else:
-    st.info("No sales data available.")
-    
     st.divider()
+
+    st.subheader("Business Financial Overview")
+
+    financial_df = pd.DataFrame({
+        "Category": ["Revenue", "Expenses", "Profit"],
+        "Amount": [total_revenue, total_expenses, net_profit]
+    })
+
+    financial_chart = px.bar(
+        financial_df,
+        x="Category",
+        y="Amount",
+        title="Revenue vs Expenses vs Profit"
+    )
+
+    st.plotly_chart(financial_chart, use_container_width=True)
+
+    profit_margin = 0
+    if total_revenue > 0:
+        profit_margin = (net_profit / total_revenue) * 100
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.metric("📈 Net Profit", f"Rp {net_profit:,.0f}")
+
+    with col2:
+        st.metric("💹 Profit Margin", f"{profit_margin:.1f}%")
+
+    st.divider()
+
+    st.subheader("Top Selling Products")
+
+    if not order_df.empty:
+        top_products = order_df.groupby(
+            "product_name",
+            as_index=False
+        )["quantity"].sum()
+
+        top_products = top_products.sort_values(
+            by="quantity",
+            ascending=False
+        )
+
+        top_chart = px.pie(
+            top_products,
+            names="product_name",
+            values="quantity",
+            title="Product Sales Distribution"
+        )
+
+        st.plotly_chart(top_chart, use_container_width=True)
+
+    else:
+        st.info("No sales data available.")
+
+    st.divider()
+
     st.subheader("Low Stock Alert")
 
     if not product_df.empty:
@@ -506,7 +483,6 @@ elif menu == "Customers":
 
     st.divider()
     st.dataframe(customer_df, use_container_width=True)
-
 
 elif menu == "Products":
 
