@@ -36,10 +36,32 @@ section[data-testid="stSidebar"] {
 }
 
 div[data-testid="metric-container"] {
-    background-color: #1c2230;
-    border: 1px solid #2d3748;
-    padding: 15px;
-    border-radius: 12px;
+    background: linear-gradient(
+        135deg,
+        rgba(30,41,59,0.95),
+        rgba(15,23,42,0.95)
+    );
+
+    border: 1px solid rgba(255,255,255,0.08);
+
+    padding: 20px;
+
+    border-radius: 18px;
+
+    box-shadow:
+        0 4px 30px rgba(0,0,0,0.25);
+
+    transition: all 0.3s ease;
+}
+
+div[data-testid="metric-container"]:hover {
+
+    transform: translateY(-4px);
+
+    border: 1px solid rgba(59,130,246,0.4);
+
+    box-shadow:
+        0 8px 40px rgba(59,130,246,0.2);
 }
 
 .stButton > button {
@@ -151,16 +173,44 @@ def generate_receipt_pdf(trx):
 
 if not st.session_state.logged_in:
 
-    st.markdown("""
-    <div class="login-container">
-        <div class="login-box">
-            <div class="login-title">
-                🚀 OperaFlow
-            </div>
-            <div class="login-subtitle">
-                AI-Powered Retail Operating System
-            </div>
-    """, unsafe_allow_html=True)
+    st.markdown(
+    f"""
+    <div style="
+        padding:30px;
+        border-radius:24px;
+        background:
+        linear-gradient(
+            135deg,
+            rgba(59,130,246,0.25),
+            rgba(168,85,247,0.18)
+        );
+
+        border:1px solid rgba(255,255,255,0.08);
+
+        margin-bottom:25px;
+    ">
+
+    <h1 style="
+        margin-bottom:10px;
+        font-size:42px;
+    ">
+        🚀 OperaFlow Enterprise Dashboard
+    </h1>
+
+    <p style="
+        color:#cbd5e1;
+        font-size:18px;
+    ">
+        Welcome back,
+        {st.session_state.current_user}.
+
+        Monitor your retail business performance in real time.
+    </p>
+
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 
     if "login_error" not in st.session_state:
         st.session_state.login_error = False
@@ -278,15 +328,15 @@ if menu == "Dashboard":
     col1, col2, col3, col4, col5 = st.columns(5)
 
     with col1:
-        st.metric("Customers", total_customers)
+        st.metric("👥 Customers", total_customers)
     with col2:
-        st.metric("Products", total_products)
+        st.metric("👥 Products", total_products)
     with col3:
-        st.metric("Orders", total_orders)
+        st.metric("👥 Orders", total_orders)
     with col4:
-        st.metric("Inventory Stock", total_stock)
+        st.metric("👥 Inventory Stock", total_stock)
     with col5:
-        st.metric("Revenue", f"Rp {total_revenue:,.0f}")
+        st.metric("👥 Revenue", f"Rp {total_revenue:,.0f}")
 
     st.divider()
     st.subheader("Revenue Trend")
